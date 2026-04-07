@@ -1,0 +1,15 @@
+%h2 Reset your password
+
+= form_with url: password_path(params[:token]), method: :patch do |f|
+  .field
+    = f.label :password, "New password"
+    %br/
+    = f.password_field :password, autofocus: true, autocomplete: "new-password", required: true
+  
+  .field
+    = f.label :password_confirmation
+    %br/
+    = f.password_field :password_confirmation, autocomplete: "new-password", required: true
+  
+  .actions
+    = f.submit "Reset password"

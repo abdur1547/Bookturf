@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class WelcomeController < ApplicationController
-  skip_before_action :authenticate_user!, only: [ :index ]
+  allow_unauthenticated_access
 
   def index; end
 end
