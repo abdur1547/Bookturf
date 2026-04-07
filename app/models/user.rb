@@ -10,6 +10,8 @@ class User < ApplicationRecord
   has_many :refresh_tokens, dependent: :delete_all
   has_many :blacklisted_tokens, dependent: :delete_all
   has_many :password_reset_tokens, dependent: :delete_all
+  has_many :user_roles, dependent: :destroy
+  has_many :roles, through: :user_roles
 
   normalizes :email, with: ->(e) { e.strip.downcase }
 
@@ -31,5 +33,52 @@ class User < ApplicationRecord
 
   def self.find_by_password_reset_token!(token)
     find_signed!(token, purpose: :password_reset)
+  end
+
+  def assign_role(role, assigned_by: nil)
+    user_roles.find_or_create_by!(role: role) do |ur|
+      ur.assigned_by = assigned_by
+    end
+  end
+
+  def remove_role(role)
+    user_roles.find_by(role: role)&.destroy
+  end
+
+  def has_role?(role_name)
+    roles.exists?(slug: role_name)
+  end
+
+  def has_permission?(permission_name)
+    permissions.exists?(name: permission_name)
+  end
+
+  def permissions
+    Permission.joins(roles: :users).where(users: { id: id }).distinct
+  end
+
+  def can?(action, resource)
+    permission_name = "#{action}:#{resource}"
+    has_permission?(permission_name) || has_permission?("manage:#{resource}")
+  end
+
+  def owner?
+    has_role?("owner")
+  end
+
+  def admin?
+    has_role?("admin")
+  end
+
+  def receptionist?
+    has_role?("receptionist")
+  end
+
+  def staff?
+    has_role?("staff")
+  end
+
+  def customer?
+    has_role?("customer")
   end
 end
