@@ -1,0 +1,13 @@
+class CreateRolePermissions < ActiveRecord::Migration[8.1]
+  def change
+    create_table :role_permissions do |t|
+      t.references :role, null: false, foreign_key: true
+      t.references :permission, null: false, foreign_key: true
+
+      t.timestamps
+    end
+
+    # Unique constraint: a role can have a permission only once
+    add_index :role_permissions, [ :role_id, :permission_id ], unique: true
+  end
+end

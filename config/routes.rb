@@ -1,13 +1,8 @@
 Rails.application.routes.draw do
-  # Devise routes for user authentication
-  devise_for :users, controllers: {
-    sessions: "users/sessions",
-    registrations: "users/registrations",
-    passwords: "users/passwords",
-    confirmations: "users/confirmations",
-    unlocks: "users/unlocks",
-    omniauth_callbacks: "users/omniauth_callbacks"
-  }
+  # Authentication routes
+  resource :session, only: %i[ new create destroy ]
+  resources :passwords, param: :token, only: %i[ new create edit update ]
+  resource :registration, only: %i[ new create ]
 
   # API v0 routes
   draw :api_v0

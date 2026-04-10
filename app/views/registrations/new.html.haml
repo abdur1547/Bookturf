@@ -1,0 +1,41 @@
+%h2 Sign up
+
+= form_with model: @user, url: registration_path do |f|
+  - if @user&.errors&.any?
+    #error_explanation{style: "color: red; padding: 1rem; margin-bottom: 1rem; background: #fee; border-radius: 4px;"}
+      %h3= "#{pluralize(@user.errors.count, "error")} prohibited this user from being saved:"
+      %ul
+        - @user.errors.full_messages.each do |message|
+          %li= message
+  
+  .field
+    = f.label :name
+    %br/
+    = f.text_field :name, autofocus: true, required: true
+  
+  .field
+    = f.label :email
+    %br/
+    = f.email_field :email, autocomplete: "email", required: true
+  
+  .field
+    = f.label :password
+    - if @minimum_password_length = 6
+      %em
+        (#{@minimum_password_length} characters minimum)
+    %br/
+    = f.password_field :password, autocomplete: "new-password", required: true
+  
+  .field
+    = f.label :password_confirmation
+    %br/
+    = f.password_field :password_confirmation, autocomplete: "new-password", required: true
+  
+  .actions
+    = f.submit "Sign up"
+
+%hr{style: "margin: 2rem 0;"}/
+
+%p
+  Already have an account?
+  = link_to "Log in", new_session_path

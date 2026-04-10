@@ -1,0 +1,27 @@
+%h2 Log in
+
+- if flash[:alert]
+  .alert{style: "color: red; padding: 1rem; margin-bottom: 1rem; background: #fee; border-radius: 4px;"}
+    = flash[:alert]
+
+= form_with url: session_path do |f|
+  .field
+    = f.label :email
+    %br/
+    = f.email_field :email, autofocus: true, autocomplete: "email", required: true
+  
+  .field
+    = f.label :password
+    %br/
+    = f.password_field :password, autocomplete: "current-password", required: true
+  
+  .actions
+    = f.submit "Log in"
+
+%hr{style: "margin: 2rem 0;"}/
+
+%p
+  = link_to "Forgot your password?", new_password_path
+  
+%p
+  = link_to "Sign up", new_registration_path

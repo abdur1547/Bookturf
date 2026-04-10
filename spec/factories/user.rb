@@ -3,9 +3,13 @@
 FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "user#{n}@example.com" }
-    sequence(:name) { |n| "User #{n}" }
+    sequence(:first_name) { |n| "User" }
+    sequence(:last_name) { |n| "Name#{n}" }
+    phone_number { "+92 300 1234567" }
     password { "password123" }
     password_confirmation { "password123" }
+    is_active { true }
+    is_global_admin { false }
 
     trait :with_google_oauth do
       provider { "google_oauth2" }
@@ -13,12 +17,17 @@ FactoryBot.define do
       avatar_url { "https://example.com/avatar.jpg" }
     end
 
-    trait :with_tracking do
-      sign_in_count { 5 }
-      current_sign_in_at { 1.hour.ago }
-      last_sign_in_at { 1.day.ago }
-      current_sign_in_ip { "192.168.1.1" }
-      last_sign_in_ip { "192.168.1.2" }
+    trait :inactive do
+      is_active { false }
+    end
+
+    trait :global_admin do
+      is_global_admin { true }
+    end
+
+    trait :with_emergency_contact do
+      emergency_contact_name { "Emergency Contact" }
+      emergency_contact_phone { "+92 300 9876543" }
     end
   end
 end

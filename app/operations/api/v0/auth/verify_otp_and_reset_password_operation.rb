@@ -78,7 +78,9 @@ module Api::V0::Auth
       reset_token.mark_as_used!
 
       # Also invalidate all other tokens for this user
-      user.password_reset_tokens
+      # Use direct model query to avoid association cache issues
+      PasswordResetToken
+          .where(user_id: user.id)
           .where.not(id: reset_token.id)
           .where(used_at: nil)
           .update_all(used_at: Time.current)
