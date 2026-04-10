@@ -64,8 +64,18 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         expect(reset_token.used_at).to be_within(2.seconds).of(Time.current)
       end
 
-      it "invalidates all other tokens for the user", pending: "Transaction isolation issue in test" do
-        created_reset_token = reset_token  # Ensure reset_token exists first and store it
+      it "invalidates all other tokens for the user" do
+        # Use a specific OTP for this test to avoid conflicts
+        unique_otp = "555555"
+
+        # Create first token with the OTP we'll use
+        token_to_use = user.password_reset_tokens.create!
+        token_to_use.update_columns(
+          otp_code_digest: Digest::SHA256.hexdigest(unique_otp),
+          expires_at: 15.minutes.from_now,
+          used_at: nil
+        )
+
         # Create another token with a different OTP
         other_token = user.password_reset_tokens.create!
         other_token.update_columns(
@@ -74,19 +84,27 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
           used_at: nil
         )
 
-        expect(user.password_reset_tokens.count).to eq(2)
+        # Note: The before block also creates a token, so we have 3 total
+        expect(user.password_reset_tokens.count).to eq(3)
 
-        make_request
+        # Make request with our unique OTP
+        unique_params = {
+          email: user.email,
+          otp_code: unique_otp,
+          password: new_password,
+          password_confirmation: new_password
+        }
+        post endpoint, params: unique_params.to_json, headers: headers
         expect(response).to have_http_status(:ok)
 
-        # Check which token was actually used
-        created_reset_token.reload
+        # Reload both tokens to see the updated state
+        token_to_use.reload
         other_token.reload
 
-        # The reset_token we created should be marked as used
-        expect(created_reset_token.used_at).not_to be_nil
+        # The token we used should be marked as used
+        expect(token_to_use.used_at).not_to be_nil
 
-        # The other token should also be marked as used (this fails due to test DB transaction)
+        # The other token should also be marked as used (invalidated)
         expect(other_token.used_at).not_to be_nil
       end
 
