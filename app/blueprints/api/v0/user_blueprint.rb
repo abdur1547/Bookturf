@@ -4,17 +4,26 @@ module Api::V0
   class UserBlueprint < BaseBlueprint
     identifier :id
 
-    fields :email, :name
+    field :email
+    field :name do |user|
+      user.full_name
+    end
 
     view :profile do
-      fields :name, :email, :avatar_url, :created_at
+      field :name do |user|
+        user.full_name
+      end
+      fields :email, :avatar_url, :created_at
       field :member_since do |user|
         "Member since #{user.created_at&.strftime('%B %Y')}"
       end
     end
 
     view :minimal do
-      fields :id, :name
+      fields :id
+      field :name do |user|
+        user.full_name
+      end
     end
   end
 end

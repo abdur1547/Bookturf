@@ -53,8 +53,8 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
       it "updates the user's password" do
         make_request
         user.reload
-        expect(user.valid_password?(new_password)).to be true
-        expect(user.valid_password?("oldpassword123")).to be false
+        expect(user.authenticate(new_password)).to be_truthy
+        expect(user.authenticate("oldpassword123")).to be_falsey
       end
 
       it "marks the token as used" do
@@ -125,7 +125,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         make_request
         expect(response).to have_http_status(:ok)
         user.reload
-        expect(user.valid_password?(new_password)).to be true
+        expect(user.authenticate(new_password)).to be_truthy
       end
     end
 
@@ -207,7 +207,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
       it "does not update other user's password" do
         make_request
         other_user.reload
-        expect(other_user.valid_password?("password123")).to be true
+        expect(other_user.authenticate("password123")).to be_truthy
       end
     end
 
@@ -432,7 +432,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         # First reset
         make_request
         user.reload
-        expect(user.valid_password?(new_password)).to be true
+        expect(user.authenticate(new_password)).to be_truthy
 
         # Try to reset again with different password
         different_password = "differentpassword456"
@@ -445,8 +445,8 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
 
         expect(response).to have_http_status(:unprocessable_entity)
         user.reload
-        expect(user.valid_password?(new_password)).to be true
-        expect(user.valid_password?(different_password)).to be false
+        expect(user.authenticate(new_password)).to be_truthy
+        expect(user.authenticate(different_password)).to be_falsey
       end
     end
 

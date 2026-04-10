@@ -30,7 +30,7 @@ module Api::V0::Auth
     end
 
     def validate_password
-      return Success() if user.valid_password?(params[:password])
+      return Success() if user.authenticate(params[:password])
 
       Failure(:unauthorized)
     end

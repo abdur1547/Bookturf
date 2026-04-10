@@ -72,8 +72,8 @@ RSpec.shared_examples "invalid OTP scenario" do
 
   it "does not update the user's password" do
     user.reload
-    expect(user.valid_password?("oldpassword123")).to be true
-    expect(user.valid_password?(new_password)).to be false
+    expect(user.authenticate("oldpassword123")).to be_truthy
+    expect(user.authenticate(new_password)).to be_falsey
   end
 
   it "does not mark any token as used" do
@@ -95,6 +95,6 @@ RSpec.shared_examples "validation error scenario" do |field|
 
   it "does not update password" do
     user.reload
-    expect(user.valid_password?("oldpassword123")).to be true
+    expect(user.authenticate("oldpassword123")).to be_truthy
   end
 end

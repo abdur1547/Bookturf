@@ -13,7 +13,7 @@ module Jwt
             iat: token_issued_at,
             exp: exp
           },
-          ENV.fetch("JWT_SECRET", nil)
+          ENV.fetch("SECRET_KEY_BASE", nil)
         )
 
       success([ access_token, jti, exp ])
