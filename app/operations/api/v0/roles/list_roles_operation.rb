@@ -12,28 +12,25 @@ module Api::V0::Roles
       @params = params
       @current_user = current_user
 
-      authorize
-      # Get all roles based on filters
-      roles = filter_roles(params)
+      return Failure(:unauthorized) unless authorize?
 
-      # Sort roles
-      roles = sort_roles(roles, params[:sort] || "name")
-
-      Success(roles: roles, current_user: current_user)
+      @roles = filter_roles(params)
+      @roles = sort_roles(@roles, params[:sort] || "name")
+      json_data = serialize
+      Success(roles: @roles, json: json_data)
     end
 
     private
-    attr_reader :params, :current_user
 
-    def authorize
-      return Success() if RolePolicy.new(current_user, Role).index?
-      Failure(:unauthorized)
+    attr_reader :params, :current_user, :roles
+
+    def authorize?
+      RolePolicy.new(current_user, Role).index?
     end
 
     def filter_roles(params)
       roles = Role.all
 
-      # Filter by type
       if params[:type].present?
         case params[:type]
         when "system"
@@ -55,6 +52,10 @@ module Api::V0::Roles
       else
         roles.alphabetical
       end
+    end
+
+    def serialize
+      Api::V0::RoleBlueprint.render_as_hash(roles, view: :list)
     end
   end
 end

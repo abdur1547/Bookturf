@@ -2,19 +2,37 @@
 
 module Api::V0::Roles
   class DeleteRoleOperation < BaseOperation
-    def call(role_id, current_user)
-      role = Role.find_by(id: role_id)
-      return Failure(error: "Role not found") unless role
+    contract do
+      params do
+        required(:id).filled(:string)
+      end
+    end
 
-      # Delete role using service
+    def call(params, current_user)
+      @params = params
+      @current_user = current_user
+      @role_id = params[:id]
+
+      @role = Role.find_by(id: @role_id)
+      return Failure(error: "Role not found") unless @role
+
+      return Failure(:unauthorized) unless authorize
+
       result = Roles::DeleteService.call(
-        role: role,
+        role: @role,
         deleted_by: current_user
       )
-
       return Failure(error: result.error) unless result.success?
+      json_data = { message: "Role deleted successfully" }
+      Success(role: @role, json: json_data)
+    end
 
-      Success(message: "Role deleted successfully", current_user: current_user)
+    private
+
+    attr_reader :role_id, :current_user, :role
+
+    def authorize
+      RolePolicy.new(current_user, role).destroy?
     end
   end
 end
