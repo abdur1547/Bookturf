@@ -38,6 +38,15 @@ module ApiAuthHelpers
     token = api_sign_in(user, password)
     auth_headers(token)
   end
+
+  # Generate auth token for a user using JWT Issuer
+  # @param user [User] The user to generate token for
+  # @return [String] The Bearer token string
+  def auth_token_for(user)
+    result = Jwt::Issuer.call(user)
+    token_data = result.data
+    "Bearer #{token_data[:access_token]}"
+  end
 end
 
 RSpec.configure do |config|

@@ -1,0 +1,35 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": [
+        "success",
+        "errors"
+    ],
+    "properties": {
+        "success": {
+            "type": "boolean",
+            "enum": [
+                false
+            ]
+        },
+        "errors": {
+            "oneOf": [
+                {
+                    "type": "object",
+                    "description": "Validation errors - can be nested or flat key-value pairs"
+                },
+                {
+                    "type": "string",
+                    "description": "Single error message"
+                },
+                {
+                    "type": "array",
+                    "description": "Array of error messages",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            ]
+        }
+    }
+}
