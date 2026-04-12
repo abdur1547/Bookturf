@@ -1,0 +1,229 @@
+{
+	"info": {
+		"_postman_id": "b8143255-0d56-4f56-96b3-5ffe9ad178df",
+		"name": "API::V0",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30110916"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "1. Signup",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"if (pm.environment.get(\"create_new_user\") === \"true\") {",
+									"    pm.collectionVariables.set(\"name\", pm.variables.replaceIn('{{$randomFullName}}'));",
+									"    pm.collectionVariables.set(\"email\", pm.variables.replaceIn('{{$randomEmail}}'));",
+									"    pm.collectionVariables.set(\"password\", pm.variables.replaceIn('{{$randomPassword}}'));",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"{{name}}\",\n    \"email\": \"{{email}}\",\n    \"password\": \"{{password}}\",\n    \"password_confirmation\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/signup",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signup"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "1. Signin",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    // \"email\": \"{{email}}\",\n    \"email\": \"kristin2@yahoo.com\",\n    \"password\": \"{{password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/signin",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"signin"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "3. Refresh",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"const response = pm.response.json();",
+									"",
+									"if (response.success === true) {",
+									"    pm.collectionVariables.set(\"access_token\", response.data.access_token);",
+									"    pm.collectionVariables.set(\"refresh_token\", response.data.refresh_token);",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"refresh_token\": {{refresh_token}}\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{api_v0_base_url}}/auth/refresh",
+							"host": [
+								"{{api_v0_base_url}}"
+							],
+							"path": [
+								"auth",
+								"refresh"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "health",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{base_url}}/up",
+					"host": [
+						"{{base_url}}"
+					],
+					"path": [
+						"up"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"variable": [
+		{
+			"key": "name",
+			"value": ""
+		},
+		{
+			"key": "email",
+			"value": ""
+		},
+		{
+			"key": "password",
+			"value": ""
+		},
+		{
+			"key": "access_token",
+			"value": ""
+		},
+		{
+			"key": "refresh_token",
+			"value": ""
+		}
+	]
+}
