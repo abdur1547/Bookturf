@@ -218,6 +218,9 @@ GEM
       rdoc (>= 4.0.0)
       reline (>= 0.4.2)
     json (2.19.3)
+    json_matchers (0.11.1)
+      json_schema
+    json_schema (0.21.0)
     jwt (3.1.2)
       base64
     kamal (2.11.0)
@@ -524,6 +527,7 @@ DEPENDENCIES
   html2haml
   image_processing (~> 1.2)
   importmap-rails
+  json_matchers
   jwt (~> 3.1)
   kamal
   oj
