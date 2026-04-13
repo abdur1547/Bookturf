@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_10_100507) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_100002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,6 +22,32 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_100507) do
     t.bigint "user_id", null: false
     t.index ["jti"], name: "index_blacklisted_tokens_on_jti", unique: true
     t.index ["user_id"], name: "index_blacklisted_tokens_on_user_id"
+  end
+
+  create_table "court_types", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "icon"
+    t.string "name", null: false
+    t.string "slug", null: false
+    t.datetime "updated_at", null: false
+    t.index ["name"], name: "index_court_types_on_name", unique: true
+    t.index ["slug"], name: "index_court_types_on_slug", unique: true
+  end
+
+  create_table "courts", force: :cascade do |t|
+    t.bigint "court_type_id", null: false
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.integer "display_order", default: 0, null: false
+    t.boolean "is_active", default: true, null: false
+    t.string "name", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "venue_id", null: false
+    t.index ["court_type_id"], name: "index_courts_on_court_type_id"
+    t.index ["is_active"], name: "index_courts_on_is_active"
+    t.index ["venue_id", "name"], name: "index_courts_on_venue_id_and_name", unique: true
+    t.index ["venue_id"], name: "index_courts_on_venue_id"
   end
 
   create_table "password_reset_tokens", force: :cascade do |t|
@@ -46,6 +72,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_100507) do
     t.index ["name"], name: "index_permissions_on_name", unique: true
     t.index ["resource", "action"], name: "index_permissions_on_resource_and_action", unique: true
     t.index ["resource"], name: "index_permissions_on_resource"
+  end
+
+  create_table "pricing_rules", force: :cascade do |t|
+    t.bigint "court_type_id", null: false
+    t.datetime "created_at", null: false
+    t.integer "day_of_week"
+    t.date "end_date"
+    t.time "end_time"
+    t.boolean "is_active", default: true, null: false
+    t.string "name", null: false
+    t.decimal "price_per_hour", precision: 10, scale: 2, null: false
+    t.integer "priority", default: 0, null: false
+    t.date "start_date"
+    t.time "start_time"
+    t.datetime "updated_at", null: false
+    t.bigint "venue_id", null: false
+    t.index ["court_type_id"], name: "index_pricing_rules_on_court_type_id"
+    t.index ["is_active"], name: "index_pricing_rules_on_is_active"
+    t.index ["priority"], name: "index_pricing_rules_on_priority"
+    t.index ["venue_id", "court_type_id"], name: "index_pricing_rules_on_venue_id_and_court_type_id"
+    t.index ["venue_id"], name: "index_pricing_rules_on_venue_id"
+    t.check_constraint "price_per_hour >= 0::numeric", name: "price_non_negative"
   end
 
   create_table "refresh_tokens", force: :cascade do |t|
@@ -194,7 +242,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_100507) do
   end
 
   add_foreign_key "blacklisted_tokens", "users"
+  add_foreign_key "courts", "court_types"
+  add_foreign_key "courts", "venues"
   add_foreign_key "password_reset_tokens", "users"
+  add_foreign_key "pricing_rules", "court_types"
+  add_foreign_key "pricing_rules", "venues"
   add_foreign_key "refresh_tokens", "users"
   add_foreign_key "role_permissions", "permissions"
   add_foreign_key "role_permissions", "roles"

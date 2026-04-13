@@ -6,6 +6,10 @@ class Venue < ApplicationRecord
   has_many :venue_users, dependent: :destroy
   has_many :staff_members, through: :venue_users, source: :user
 
+  # Phase 3: Courts
+  has_many :courts, dependent: :destroy
+  has_many :pricing_rules, dependent: :destroy
+
   # Accept nested attributes for settings and hours
   accepts_nested_attributes_for :venue_setting
   accepts_nested_attributes_for :venue_operating_hours, allow_destroy: true
