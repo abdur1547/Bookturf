@@ -11,6 +11,10 @@ const routes: Routes = [
     loadChildren: () => import('./modules/auth/auth.module').then((m) => m.AuthModule),
   },
   {
+    path: 'users',
+    loadChildren: () => import('./modules/user/user.module').then((m) => m.UserModule),
+  },
+  {
     path: 'errors',
     loadChildren: () => import('./modules/error/error.module').then((m) => m.ErrorModule),
   },
@@ -21,4 +25,4 @@ const routes: Routes = [
   imports: [RouterModule.forRoot(routes)],
   exports: [RouterModule],
 })
-export class AppRoutingModule {}
+export class AppRoutingModule { }
