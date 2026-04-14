@@ -1,42 +1,42 @@
 import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { inject } from '@angular/core';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { environment } from 'src/environments/environment';
 
 export abstract class ApiBaseService<T> {
-    protected constructor(protected readonly http: HttpClient, protected readonly baseUrl: string) { }
+    protected readonly apiVersion: string = 'v0';
+    protected readonly http: HttpClient = inject(HttpClient);
+    protected readonly baseUrl: string = `${environment.apiBaseUrl}/${this.apiVersion}`;
 
-    public list(params?: Record<string, string | number | boolean | undefined>): Observable<T[]> {
+    public list(url: string, params?: Record<string, string | number | boolean | undefined>): Observable<T[]> {
         return this.http
-            .get<T[]>(this.baseUrl, { params: this.buildParams(params) })
+            .get<T[]>(`${this.baseUrl}/${url}`, { params: this.buildParams(params) })
             .pipe(catchError((error: HttpErrorResponse) => this.handleError('list', error)));
     }
 
-    public get(id: string | number, params?: Record<string, string | number | boolean | undefined>): Observable<T> {
+    public get(url: string, params?: Record<string, string | number | boolean | undefined>): Observable<T> {
         return this.http
-            .get<T>(this.resourceUrl(id), { params: this.buildParams(params) })
+            .get<T>(`${this.baseUrl}/${url}`, { params: this.buildParams(params) })
             .pipe(catchError((error: HttpErrorResponse) => this.handleError('get', error)));
     }
 
-    public create(payload: Partial<T>): Observable<T> {
+    public create(url: string, payload: Partial<T>): Observable<T> {
         return this.http
-            .post<T>(this.baseUrl, payload)
+            .post<T>(`${this.baseUrl}/${url}`, payload)
             .pipe(catchError((error: HttpErrorResponse) => this.handleError('create', error)));
     }
 
-    public update(id: string | number, payload: Partial<T>): Observable<T> {
+    public update(url: string, id: string | number, payload: Partial<T>): Observable<T> {
         return this.http
-            .put<T>(this.resourceUrl(id), payload)
+            .put<T>(`${this.baseUrl}/${url}/${id}`, payload)
             .pipe(catchError((error: HttpErrorResponse) => this.handleError('update', error)));
     }
 
-    public delete(id: string | number): Observable<void> {
+    public delete(url: string, id: string | number): Observable<void> {
         return this.http
-            .delete<void>(this.resourceUrl(id))
+            .delete<void>(`${this.baseUrl}/${url}/${id}`)
             .pipe(catchError((error: HttpErrorResponse) => this.handleError('delete', error)));
-    }
-
-    protected resourceUrl(id: string | number): string {
-        return `${this.baseUrl}/${id}`;
     }
 
     protected handleError(operation: string, error: HttpErrorResponse): Observable<never> {
