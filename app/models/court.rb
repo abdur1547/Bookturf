@@ -66,6 +66,39 @@ class Court < ApplicationRecord
     qr_code_url.present?
   end
 
+  def sport_type_name
+    court_type&.name
+  end
+
+  def venue_name
+    venue&.name
+  end
+
+  def slot_duration_minutes
+    venue&.venue_setting&.minimum_slot_duration || 60
+  end
+
+  def booking_requires_approval
+    venue&.venue_setting&.requires_approval || false
+  end
+
+  def pricing_rules
+    return PricingRule.none unless venue && court_type
+
+    venue.pricing_rules.where(court_type_id: court_type_id)
+  end
+
+  def price_range
+    rules = pricing_rules
+    min_price = rules.minimum(:price_per_hour) || 0
+    max_price = rules.maximum(:price_per_hour) || 0
+
+    {
+      min: min_price.to_f,
+      max: max_price.to_f
+    }
+  end
+
   # Check if court is available at a specific time
   def available_at?(start_time, end_time)
     return false unless is_active?

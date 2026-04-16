@@ -36,7 +36,11 @@ namespace :api do
         patch :update_onboarding_step
       end
     end
-    resources :courts, only: API_ONLY_ROUTES
+    resources :courts, only: API_ONLY_ROUTES do
+      member do
+        patch :reorder
+      end
+    end
     resources :pricing_rules, only: API_ONLY_ROUTES
 
     resources :bookings, only: API_ONLY_ROUTES do

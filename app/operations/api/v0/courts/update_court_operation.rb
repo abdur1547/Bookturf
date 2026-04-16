@@ -6,7 +6,9 @@ module Api::V0::Courts
       params do
         required(:id).filled
         required(:court).hash do
+          optional(:sport_type_id).maybe(:integer)
           optional(:court_type_id).maybe(:integer)
+          optional(:sport_type_name).maybe(:string)
           optional(:name).maybe(:string)
           optional(:description).maybe(:string)
           optional(:is_active).maybe(:bool)
@@ -18,11 +20,25 @@ module Api::V0::Courts
     def call(params, current_user)
       @params = params
       @current_user = current_user
-      court_params = params[:court]
+      raw_court_params = params[:court]
 
       @court = find_court(params[:id])
-      return Failure(error: "Court not found") unless @court
+      return Failure(error: :not_found) unless @court
       return Failure(:unauthorized) unless authorize
+
+      court_type_id = raw_court_params[:sport_type_id].presence || raw_court_params[:court_type_id].presence
+      if court_type_id.blank? && raw_court_params[:sport_type_name].present?
+        court_type_id = find_court_type_id(raw_court_params[:sport_type_name])
+        return Failure(error: "Sport type not found") unless court_type_id
+      end
+
+      court_params = raw_court_params.slice(
+        :name,
+        :description,
+        :is_active,
+        :display_order
+      )
+      court_params[:court_type_id] = court_type_id if court_type_id.present?
 
       result = Courts::UpdateService.call(court: @court, params: court_params)
       return Failure(error: result.error) unless result.success?
@@ -42,6 +58,11 @@ module Api::V0::Courts
 
     def authorize
       CourtPolicy.new(current_user, court).update?
+    end
+
+    def find_court_type_id(sport_type_name)
+      court_type = CourtType.where("lower(name) = ?", sport_type_name.to_s.downcase).first
+      court_type&.id
     end
 
     def serialize

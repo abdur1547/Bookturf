@@ -143,6 +143,25 @@ RSpec.describe 'API V0 Courts', type: :request do
     end
   end
 
+  describe 'PATCH /api/v0/courts/:id/reorder' do
+    let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+    let(:request_params) do
+      {
+        display_order: 10
+      }
+    end
+
+    before do
+      patch "/api/v0/courts/#{active_court.id}/reorder", params: request_params.to_json, headers: request_headers
+    end
+
+    it 'reorders the court successfully' do
+      expect(response).to have_http_status(:ok)
+      expect(active_court.reload.display_order).to eq(10)
+      expect(response.parsed_body['data']).to include('id' => active_court.id, 'display_order' => 10)
+    end
+  end
+
   describe 'DELETE /api/v0/courts/:id' do
     let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
 

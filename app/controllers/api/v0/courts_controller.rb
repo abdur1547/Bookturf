@@ -32,6 +32,13 @@ module Api::V0
       handle_operation_response(result)
     end
 
+    # PATCH /api/v0/courts/:id/reorder
+    def reorder
+      result = Api::V0::Courts::ReorderCourtOperation.call(params.to_unsafe_h, current_user)
+
+      handle_operation_response(result)
+    end
+
     # DELETE /api/v0/courts/:id
     def destroy
       result = Api::V0::Courts::DeleteCourtOperation.call(params.to_unsafe_h, current_user)

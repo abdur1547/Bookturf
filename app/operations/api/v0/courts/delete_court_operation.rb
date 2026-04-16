@@ -13,7 +13,7 @@ module Api::V0::Courts
       @current_user = current_user
 
       @court = find_court(params[:id])
-      return Failure(error: "Court not found") unless @court
+      return Failure(error: :not_found) unless @court
       return Failure(:unauthorized) unless authorize
 
       result = Courts::DeleteService.call(court: @court)

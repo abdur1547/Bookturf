@@ -40,6 +40,8 @@ module Api::V0
       case errors
       when :unauthorized
         forbidden_response("You are not authorized to perform this action")
+      when :not_found
+        not_found_response("The requested resource does not exist")
       else
         unprocessable_entity(errors)
       end

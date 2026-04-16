@@ -4,14 +4,17 @@ module Api::V0::Courts
   class ListCourtsOperation < BaseOperation
     contract do
       params do
-        optional(:page).maybe(:integer)
-        optional(:per_page).maybe(:integer)
+        optional(:page).maybe(:integer, gt?: 0)
+        optional(:per_page).maybe(:integer, gt?: 0)
         optional(:venue_id).maybe(:integer)
+        optional(:sport_type_id).maybe(:integer)
         optional(:court_type_id).maybe(:integer)
+        optional(:city_id).maybe(:integer)
+        optional(:area_id).maybe(:integer)
         optional(:is_active).maybe(:bool)
         optional(:search).maybe(:string)
-        optional(:sort).maybe(:string)
-        optional(:order).maybe(:string)
+        optional(:sort).maybe(:string, included_in?: %w[name created_at display_order])
+        optional(:order).maybe(:string, included_in?: %w[asc desc])
       end
     end
 
@@ -20,15 +23,17 @@ module Api::V0::Courts
       @current_user = current_user
 
       @courts = Court.includes(:court_type, :venue).all
+
+      # Apply filters
       @courts = @courts.where(venue_id: params[:venue_id]) if params[:venue_id].present?
-      @courts = @courts.where(court_type_id: params[:court_type_id]) if params[:court_type_id].present?
+      court_type_id = params[:sport_type_id].presence || params[:court_type_id].presence
+      @courts = @courts.where(court_type_id: court_type_id) if court_type_id.present?
+
+      # city_id and area_id filters are not supported by the current venue schema
 
       if params.key?(:is_active)
-        if params[:is_active] == true || params[:is_active] == "true"
-          @courts = @courts.active
-        elsif params[:is_active] == false || params[:is_active] == "false"
-          @courts = @courts.inactive
-        end
+        is_active = params[:is_active] == true || params[:is_active] == "true"
+        @courts = is_active ? @courts.active : @courts.inactive
       end
 
       @courts = search_courts(@courts, params[:search]) if params[:search].present?
@@ -44,8 +49,8 @@ module Api::V0::Courts
     attr_reader :params, :current_user, :courts
 
     def search_courts(courts, query)
-      courts.where(
-        "name ILIKE :term OR description ILIKE :term",
+      courts.joins(:venue).where(
+        "courts.name ILIKE :term OR courts.description ILIKE :term OR venues.name ILIKE :term",
         term: "%#{query}%"
       )
     end
