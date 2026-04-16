@@ -9,9 +9,14 @@
           %li= message
   
   .field
-    = f.label :name
+    = f.label :first_name
     %br/
-    = f.text_field :name, autofocus: true, required: true
+    = f.text_field :first_name, autofocus: true, required: true
+  
+  .field
+    = f.label :last_name
+    %br/
+    = f.text_field :last_name, autofocus: true, required: true
   
   .field
     = f.label :email
