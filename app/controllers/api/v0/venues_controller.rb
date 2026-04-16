@@ -46,6 +46,20 @@ module Api::V0
       handle_operation_response(result)
     end
 
+    # PATCH /api/v0/venues/:id/operating_hours
+    def update_operating_hours
+      result = Api::V0::Venues::UpdateVenueOperatingHoursOperation.call(params.to_unsafe_h, current_user)
+
+      handle_operation_response(result)
+    end
+
+    # PATCH /api/v0/venues/:id/onboarding_step
+    def update_onboarding_step
+      result = Api::V0::Venues::UpdateVenueOnboardingStepOperation.call(params.to_unsafe_h, current_user)
+
+      handle_operation_response(result)
+    end
+
     private
 
     def handle_operation_response(result, success_status = :ok)
