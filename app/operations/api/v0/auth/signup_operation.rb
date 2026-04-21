@@ -49,13 +49,10 @@ module Api::V0::Auth
     end
 
     def json_serialize
-      Api::V0::UserBlueprint.render_as_hash(user).merge(token_pair)
-    end
-
-    def token_pair
       {
         access_token: "#{Constants::TOKEN_TYPE} #{access_token}",
-        refresh_token:
+        refresh_token:,
+        user: Api::V0::UserBlueprint.render_as_hash(user)
       }
     end
   end
