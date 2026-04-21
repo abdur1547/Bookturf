@@ -4,8 +4,7 @@ module Api::V0::Auth
   class SignupOperation < BaseOperation
     contract do
       params do
-        required(:first_name).filled(:string)
-        required(:last_name).filled(:string)
+        required(:full_name).filled(:string)
         required(:email).filled(:string)
         required(:password).filled(:string)
         required(:password_confirmation).filled(:string)
@@ -34,8 +33,7 @@ module Api::V0::Auth
       @user = User.new(email: params[:email],
                         password: params[:password],
                         password_confirmation: params[:password_confirmation],
-                        first_name: params[:first_name],
-                        last_name: params[:last_name])
+                        full_name: params[:full_name])
       return Success() if user.save
 
       Failure(user.errors.to_hash)

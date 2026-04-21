@@ -79,8 +79,8 @@ RSpec.describe User, type: :model do
 
   # Custom tests
   describe '#full_name' do
-    it 'returns first and last name' do
-      user = create(:user, first_name: 'John', last_name: 'Doe')
+    it 'returns the full name' do
+      user = create(:user, full_name: 'John Doe')
       expect(user.full_name).to eq('John Doe')
     end
   end
@@ -159,8 +159,7 @@ end
 FactoryBot.define do
   factory :user do
     email { Faker::Internet.email }
-    first_name { Faker::Name.first_name }
-    last_name { Faker::Name.last_name }
+    full_name { Faker::Name.name }
     
     # Traits
     trait :admin do

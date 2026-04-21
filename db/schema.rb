@@ -261,10 +261,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101615) do
     t.string "email", null: false
     t.string "emergency_contact_name"
     t.string "emergency_contact_phone"
-    t.string "first_name", null: false
+    t.string "full_name", null: false
     t.boolean "is_active", default: true, null: false
     t.boolean "is_global_admin", default: false, null: false
-    t.string "last_name", null: false
     t.string "password_digest", null: false
     t.string "phone_number"
     t.string "provider"
@@ -273,7 +272,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101615) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["is_active"], name: "index_users_on_is_active"
     t.index ["is_global_admin"], name: "index_users_on_is_global_admin"
-    t.index ["phone_number"], name: "index_users_on_phone_number"
+    t.index ["phone_number"], name: "index_users_on_phone_number", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
   end
 

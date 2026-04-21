@@ -3,9 +3,8 @@
 FactoryBot.define do
   factory :user do
     sequence(:email) { |n| "user#{n}@example.com" }
-    sequence(:first_name) { |n| "User" }
-    sequence(:last_name) { |n| "Name#{n}" }
-    phone_number { "+92 300 1234567" }
+    sequence(:full_name) { |n| "User full name #{n}" }
+    sequence(:phone_number) { |n| "+92 30#{n % 10} 1234#{'%03d' % (n % 1000)}" }
     password { "password123" }
     password_confirmation { "password123" }
     is_active { true }

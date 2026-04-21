@@ -21,8 +21,7 @@ class User < ApplicationRecord
 
   has_secure_password
 
-  validates :first_name, presence: true, length: { minimum: 2, maximum: 50 }
-  validates :last_name, presence: true, length: { minimum: 2, maximum: 50 }
+  validates :full_name, presence: true, length: { minimum: 2, maximum: 100 }
   validates :email, presence: true,
                     format: { with: URI::MailTo::EMAIL_REGEXP },
                     uniqueness: { case_sensitive: false }
@@ -45,8 +44,7 @@ class User < ApplicationRecord
       user.password = SecureRandom.hex(20)
       # Split name into first and last name
       name_parts = data.name.split(" ", 2)
-      user.first_name = name_parts[0] || "User"
-      user.last_name = name_parts[1] || "Name"
+      user.full_name = name_parts.join(" ") || "User full name"
       user.avatar_url = data.image
     end
   end
@@ -54,10 +52,6 @@ class User < ApplicationRecord
   # For password reset tokens
   def self.find_by_password_reset_token!(token)
     find_signed!(token, purpose: :password_reset)
-  end
-
-  def full_name
-    "#{first_name} #{last_name}".strip
   end
 
   def activate!

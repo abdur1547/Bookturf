@@ -4,14 +4,7 @@ module Api::V0
   class UserBlueprint < BaseBlueprint
     identifier :id
 
-    fields :email, :avatar_url, :created_at, :updated_at
-
-    field :first_name
-    field :last_name
-
-    field :name do |user|
-      user.full_name
-    end
+    fields :full_name, :email, :avatar_url, :created_at, :updated_at
 
     field :phone do |user|
       user.phone_number
@@ -48,9 +41,7 @@ module Api::V0
       if user.owner?
         owner_venue = user.owned_venues.first
         {
-          venue_id: owner_venue&.id,
-          onboarding_step: owner_venue&.onboarding_step || 0,
-          onboarding_completed: owner_venue&.onboarding_completed || false
+          venue_id: owner_venue&.id
         }
       else
         nil
@@ -71,29 +62,19 @@ module Api::V0
     end
 
     view :profile do
-      field :name do |user|
-        user.full_name
-      end
-      fields :email, :avatar_url, :created_at
+      fields :full_name, :email, :avatar_url, :created_at
       field :member_since do |user|
         "Member since #{user.created_at&.strftime('%B %Y')}"
       end
     end
 
     view :minimal do
-      fields :id
-      field :name do |user|
-        user.full_name
-      end
+      fields :id, :full_name
     end
 
     view :detailed do
-      fields :id, :email, :first_name, :last_name, :avatar_url, :phone_number,
+      fields :id, :full_name, :email, :avatar_url, :phone_number,
              :created_at, :updated_at
-
-      field :name do |user|
-        user.full_name
-      end
 
       field :user_type do |user|
         if user.owner?
