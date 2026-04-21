@@ -4,11 +4,7 @@ module Api::V0
   class UserBlueprint < BaseBlueprint
     identifier :id
 
-    fields :full_name, :email, :avatar_url, :created_at, :updated_at
-
-    field :phone do |user|
-      user.phone_number
-    end
+    fields :full_name, :email, :avatar_url, :created_at, :updated_at, :phone_number
 
     field :user_type do |user|
       if user.owner?
@@ -18,12 +14,6 @@ module Api::V0
       else
         "customer"
       end
-    end
-
-    # Placeholder for email verification timestamp
-    field :email_verified_at do |user|
-      # TODO: Add email_verified_at migration if needed
-      nil
     end
 
     # User preferences
@@ -61,30 +51,8 @@ module Api::V0
       end
     end
 
-    view :profile do
-      fields :full_name, :email, :avatar_url, :created_at
-      field :member_since do |user|
-        "Member since #{user.created_at&.strftime('%B %Y')}"
-      end
-    end
-
     view :minimal do
       fields :id, :full_name
-    end
-
-    view :detailed do
-      fields :id, :full_name, :email, :avatar_url, :phone_number,
-             :created_at, :updated_at
-
-      field :user_type do |user|
-        if user.owner?
-          "owner"
-        elsif user.staff?
-          "staff"
-        else
-          "customer"
-        end
-      end
     end
   end
 end
