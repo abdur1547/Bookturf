@@ -42,7 +42,10 @@ module Api::V0
     def signout
       result = Api::V0::Auth::SignoutOperation.call(current_user, decoded_token)
       if result.success
-        success_response({})
+        cookies.delete(:access_token, domain: :all, path: "/")
+        cookies.delete(:refresh_token, domain: :all, path: "/")
+
+        success_response({ message: "Signed out successfully" })
       else
         unprocessable_entity(result.errors)
       end
@@ -72,12 +75,12 @@ module Api::V0
       cookies[:access_token] = {
         value: access_token,
         httponly: true,
-        secure: Rails.env.production?
+        secure: true
       }
       cookies[:refresh_token] = {
         value: refresh_token,
         httponly: true,
-        secure: Rails.env.production?
+        secure: true
       }
     end
 
