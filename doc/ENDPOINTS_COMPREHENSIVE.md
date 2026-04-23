@@ -793,18 +793,42 @@ Create a new venue (owner onboarding - Step 1).
   "description": "string|null",
   "address": "string",
   "city": "string",
-  "area": "string|null",
-  "state": "string|null",
-  "country": "string|null",
+  "area": "string",
+  "state": "string",
+  "country": "string",
   "postal_code": "string|null",
-  "phone_number": "string|null",
-  "email": "string|null",
   "latitude": "number|null",
   "longitude": "number|null",
-  "timezone": "string",
-  "currency": "string"
+  "phone_number": "string|null",
+  "email": "string|null",
+  "is_active": "boolean|null",
+  "venue_setting": { // optional
+    "minimum_slot_duration": "number|null", // default to 1h
+    "maximum_slot_duration": "number|null", // default to 1h
+    "slot_interval": "number|null",         // default to 1h
+    "advance_booking_days": "number|null",  // default to 7d
+    "requires_approval": "boolean|null",    // default true
+    "timezone": "string|null", // default to "Asia/Karachi"
+    "currency": "string|null" // default to "Asia/Karachi"
+  },
+  "venue_operating_hours": [ //optional
+    {
+      "day_of_week": "integer (0-6)",  // 0=Monday, 6=Sunday. Must include all 7 days
+      "opens_at": "string",       // Time format: HH:MM (e.g., "09:00"). Required if is_closed is false
+      "closes_at": "string",      // Time format: HH:MM (e.g., "23:00"). Required if is_closed is false. Must be after opens_at
+      "is_closed": "boolean"           // If true, opens_at and closes_at are ignored
+    }
+  ]
 }
 ```
+
+**Notes:**
+- `venue_operating_hours` is optional. If not provided, defaults to: open all days, Monday (0) to Sunday (6), from 09:00 to 23:00.
+- If provided, must contain exactly 7 entries (one for each day of the week from 0-6).
+- Each `day_of_week` must be unique and in the range 0-6.
+- Time format must be HH:MM in 24-hour format (e.g., "09:00", "23:30").
+- If `is_closed` is false, both `opens_at` and `closes_at` are required.
+- `closes_at` must be after `opens_at` (e.g., "09:00" closes_at "23:00" is valid, but "23:00" closes_at "09:00" is invalid).
 
 **Response Data:** Same as GET /api/v0/venues/:id
 

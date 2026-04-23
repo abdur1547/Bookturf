@@ -28,8 +28,6 @@ class Venue < ApplicationRecord
   validate :owner_can_have_only_one_venue, on: :create
 
   before_validation :generate_slug, if: -> { slug.blank? && name.present? }
-  after_create :create_default_settings
-  after_create :create_default_operating_hours
 
   scope :active, -> { where(is_active: true) }
   scope :inactive, -> { where(is_active: false) }
@@ -75,24 +73,6 @@ class Venue < ApplicationRecord
     end
 
     self.slug = slug_candidate
-  end
-
-  def create_default_settings
-    create_venue_setting! unless venue_setting.present?
-  end
-
-  def create_default_operating_hours
-    return if venue_operating_hours.any?
-
-    # Create default hours: Monday-Sunday, 9 AM - 11 PM
-    (0..6).each do |day|
-      venue_operating_hours.create!(
-        day_of_week: day,
-        opens_at: "09:00",
-        closes_at: "23:00",
-        is_closed: false
-      )
-    end
   end
 
   def owner_can_have_only_one_venue
