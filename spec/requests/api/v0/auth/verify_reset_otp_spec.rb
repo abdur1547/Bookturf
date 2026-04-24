@@ -117,7 +117,7 @@ RSpec.describe "Api::V0::Auth::VerifyResetOtp", type: :request do
         make_request
         signin_params = { email: user.email, password: "oldpassword123" }
         post "/api/v0/auth/signin", params: signin_params.to_json, headers: headers
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
 
       include_examples "successful API response" do

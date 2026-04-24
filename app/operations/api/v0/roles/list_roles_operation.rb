@@ -12,7 +12,7 @@ module Api::V0::Roles
       @params = params
       @current_user = current_user
 
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:forbidden) unless authorize?
 
       @roles = filter_roles(params)
       @roles = sort_roles(@roles, params[:sort] || "name")

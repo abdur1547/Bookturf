@@ -326,7 +326,7 @@ RSpec.describe "POST /api/v0/roles", type: :request do
       let(:request_headers) { headers.merge("Authorization" => "Bearer invalid_token") }
 
       it "returns unauthorized status" do
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "does not create a role" do

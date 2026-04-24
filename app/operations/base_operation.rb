@@ -7,12 +7,13 @@ class BaseOperation
   include Dry::Monads[:result, :do]
 
   class Result
-    attr_reader :success, :value, :errors
+    attr_reader :success, :value, :errors, :error_type
 
-    def initialize(success:, value: nil, errors: nil)
+    def initialize(success:, value: nil, errors: nil, error_type: nil)
       @success = success
       @value = value
       @errors = errors
+      @error_type = error_type
     end
   end
 
@@ -104,10 +105,12 @@ class BaseOperation
       Result.new(success: true, value: monad_result.value!)
     when Dry::Monads::Failure
       failure_value = monad_result.failure
-      formatted_errors = format_errors(failure_value)
-      Result.new(success: false, errors: formatted_errors)
+      if failure_value.is_a?(Symbol)
+        Result.new(success: false, error_type: failure_value)
+      else
+        Result.new(success: false, errors: format_errors(failure_value))
+      end
     else
-      # Fallback for unexpected result types
       Result.new(success: true, value: monad_result)
     end
   end

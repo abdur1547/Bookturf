@@ -35,15 +35,13 @@ module Api::V0
     end
 
     def handle_operation_failure(result)
-      errors = result.errors
-
-      case errors
-      when :unauthorized
-        forbidden_response("You are not authorized to perform this action")
+      case result.error_type
       when :not_found
-        not_found_response("The requested resource does not exist")
+        not_found_response
+      when :forbidden
+        forbidden_response("You are not authorized to perform this action")
       else
-        unprocessable_entity(errors)
+        unprocessable_entity(result.errors)
       end
     end
 

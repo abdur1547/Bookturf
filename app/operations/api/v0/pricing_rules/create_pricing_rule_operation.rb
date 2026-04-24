@@ -24,13 +24,13 @@ module Api::V0::PricingRules
       @current_user = current_user
       pricing_rule_params = params[:pricing_rule]
 
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:forbidden) unless authorize?
       @venue = current_user.venues.first || current_user.owned_venues.first
-      return Failure(error: "Venue not found") unless @venue
+      return Failure(:not_found) unless @venue
 
       create_params = pricing_rule_params.merge(venue_id: @venue.id)
       result = PricingRules::CreateService.call(params: create_params)
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       @pricing_rule = result.data
       json_data = serialize

@@ -193,7 +193,7 @@ RSpec.describe "GET /api/v0/roles", type: :request do
     let(:request_headers) { headers.merge("Authorization" => "Bearer invalid_token_12345") }
 
     it "returns unauthorized status" do
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:forbidden)
     end
 
     it "returns error response" do
@@ -209,7 +209,7 @@ RSpec.describe "GET /api/v0/roles", type: :request do
     let(:request_headers) { headers.merge("Authorization" => "Bearer #{expired_token}") }
 
     it "returns unauthorized status" do
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:forbidden)
     end
   end
 end

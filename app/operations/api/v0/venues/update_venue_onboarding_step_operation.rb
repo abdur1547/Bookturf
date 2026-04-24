@@ -14,17 +14,17 @@ module Api::V0::Venues
       @current_user = current_user
 
       @venue = find_venue(params[:id])
-      return Failure(error: "Venue not found") unless @venue
+      return Failure(:not_found) unless @venue
 
-      return Failure(:unauthorized) unless authorize
+      return Failure(:forbidden) unless authorize
 
       onboarding_step = params[:onboarding_step]
 
       # Validate step is between 0-4
-      return Failure(error: "Onboarding step must be between 0 and 4") unless (0..4).include?(onboarding_step)
+      return Failure("Onboarding step must be between 0 and 4") unless (0..4).include?(onboarding_step)
 
       result = update_onboarding_step(onboarding_step)
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       json_data = serialize
 

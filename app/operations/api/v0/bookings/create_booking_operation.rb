@@ -20,14 +20,14 @@ module Api::V0::Bookings
       @params = params
       @current_user = current_user
 
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:forbidden) unless authorize?
 
       booking_params = params[:booking].dup
       booking_params[:user_id] ||= current_user.id
       booking_params[:created_by_id] = current_user.id
 
       result = Bookings::CreateService.call(params: booking_params)
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       @booking = result.data
       Success(booking: booking, json: serialize)

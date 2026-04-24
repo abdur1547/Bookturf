@@ -14,9 +14,9 @@ module Api::V0::Venues
       puts "** params:", params.inspect
 
       @venue = Venue.find_by(id: params[:id])
-      return Failure(error: "Venue not found") unless @venue
+      return Failure(:not_found) unless @venue
 
-      return Failure(:unauthorized) unless authorize
+      return Failure(:forbidden) unless authorize
 
       result = Venues::VenueUpdaterService.call(
         venue: @venue,

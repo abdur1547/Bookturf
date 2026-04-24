@@ -13,7 +13,7 @@ module Api::V0::Courts
       @current_user = current_user
 
       @court = find_court(params[:id])
-      return Failure(error: :not_found) unless @court
+      return Failure(:not_found) unless @court
 
       json_data = serialize
       Success(court: @court, json: json_data)

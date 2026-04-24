@@ -17,24 +17,24 @@ module Api::V0::Venues
     def call(params)
       @params = params
       venue = find_venue
-      return Failure(error: "Venue not found") unless venue
+      return Failure(:not_found) unless venue
 
       start_date = parse_date(params[:start_date])
-      return Failure(error: "Invalid start_date") unless start_date
+      return Failure("Invalid start_date") unless start_date
 
       end_date = parse_date(params[:end_date] || params[:start_date])
-      return Failure(error: "Invalid end_date") unless end_date
+      return Failure("Invalid end_date") unless end_date
 
-      return Failure(error: "end_date must be on or after start_date") if end_date < start_date
+      return Failure("end_date must be on or after start_date") if end_date < start_date
 
       settings = venue.venue_setting
-      return Failure(error: "Venue settings are required") unless settings
+      return Failure("Venue settings are required") unless settings
 
       duration_minutes = parse_duration(params[:duration_minutes], settings.minimum_slot_duration)
-      return Failure(error: "Invalid duration_minutes") unless duration_minutes
+      return Failure("Invalid duration_minutes") unless duration_minutes
 
       unless valid_duration?(duration_minutes, settings)
-        return Failure(error: "duration_minutes must be between #{settings.minimum_slot_duration} and #{settings.maximum_slot_duration} and a multiple of #{settings.slot_interval}")
+        return Failure("duration_minutes must be between #{settings.minimum_slot_duration} and #{settings.maximum_slot_duration} and a multiple of #{settings.slot_interval}")
       end
 
       availability = Venues::AvailabilityService.call(
@@ -47,7 +47,7 @@ module Api::V0::Venues
         include_booked: parse_boolean(params[:include_booked])
       )
 
-      return Failure(error: availability.error) unless availability.success?
+      return Failure(availability.error) unless availability.success?
 
       Success(json: availability.data)
     end

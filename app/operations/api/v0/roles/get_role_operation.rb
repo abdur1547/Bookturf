@@ -14,9 +14,9 @@ module Api::V0::Roles
       @role_id = params[:id]
 
       @role = Role.find_by(id: @role_id)
-      return Failure(error: "Role not found") unless @role
+      return Failure(:not_found) unless @role
 
-      return Failure(:unauthorized) unless authorize
+      return Failure(:forbidden) unless authorize
 
       json_data = serialize
       Success(role: @role, json: json_data)

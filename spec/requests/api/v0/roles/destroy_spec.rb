@@ -229,7 +229,7 @@ RSpec.describe "DELETE /api/v0/roles/:id", type: :request do
       end
 
       it "returns unauthorized status" do
-        expect(response).to have_http_status(:unauthorized)
+        expect(response).to have_http_status(:forbidden)
       end
 
       it "does not delete the role" do

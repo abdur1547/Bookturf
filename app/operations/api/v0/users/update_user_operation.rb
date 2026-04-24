@@ -29,7 +29,7 @@ module Api::V0::Users
     def authorize
       return Success() if current_user.id.to_s == user_id.to_s
 
-      Failure(:unauthorized)
+      Failure(:forbidden)
     end
 
     def find_user

@@ -14,7 +14,7 @@ module Api::V0::PricingRules
       @params = params
       @current_user = current_user
 
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:forbidden) unless authorize?
 
       @pricing_rules = pricing_rules_scope
       @pricing_rules = @pricing_rules.where(court_type_id: params[:court_type_id]) if params[:court_type_id].present?

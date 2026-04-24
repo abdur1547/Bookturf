@@ -23,13 +23,13 @@ module Api::V0::Courts
       raw_court_params = params[:court]
 
       @court = find_court(params[:id])
-      return Failure(error: :not_found) unless @court
-      return Failure(:unauthorized) unless authorize
+      return Failure(:not_found) unless @court
+      return Failure(:forbidden) unless authorize
 
       court_type_id = raw_court_params[:sport_type_id].presence || raw_court_params[:court_type_id].presence
       if court_type_id.blank? && raw_court_params[:sport_type_name].present?
         court_type_id = find_court_type_id(raw_court_params[:sport_type_name])
-        return Failure(error: "Sport type not found") unless court_type_id
+        return Failure(:not_found) unless court_type_id
       end
 
       court_params = raw_court_params.slice(
@@ -41,7 +41,7 @@ module Api::V0::Courts
       court_params[:court_type_id] = court_type_id if court_type_id.present?
 
       result = Courts::UpdateService.call(court: @court, params: court_params)
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       @court = result.data
       json_data = serialize

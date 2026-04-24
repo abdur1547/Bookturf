@@ -14,11 +14,11 @@ module Api::V0::Courts
       @current_user = current_user
 
       @court = find_court(params[:id])
-      return Failure(error: :not_found) unless @court
-      return Failure(:unauthorized) unless authorize
+      return Failure(:not_found) unless @court
+      return Failure(:forbidden) unless authorize
 
       result = Courts::ReorderService.call(court: @court, display_order: params[:display_order])
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       @court = result.data
       json_data = serialize

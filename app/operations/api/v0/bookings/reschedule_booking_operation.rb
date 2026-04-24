@@ -18,11 +18,11 @@ module Api::V0::Bookings
       @current_user = current_user
       @booking = Booking.find_by(id: params[:id])
 
-      return Failure(error: "Booking not found") unless booking
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:not_found) unless booking
+      return Failure(:forbidden) unless authorize?
 
       result = Bookings::RescheduleService.call(booking: booking, params: params[:booking])
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       @booking = result.data
       Success(booking: booking, json: serialize)

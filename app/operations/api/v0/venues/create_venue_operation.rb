@@ -8,7 +8,7 @@ module Api::V0::Venues
       @params = params
       @current_user = current_user
 
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:forbidden) unless authorize?
 
       result = Venues::VenueCreatorService.call(
         params: params,

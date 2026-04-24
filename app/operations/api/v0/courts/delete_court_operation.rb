@@ -13,11 +13,11 @@ module Api::V0::Courts
       @current_user = current_user
 
       @court = find_court(params[:id])
-      return Failure(error: :not_found) unless @court
-      return Failure(:unauthorized) unless authorize
+      return Failure(:not_found) unless @court
+      return Failure(:forbidden) unless authorize
 
       result = Courts::DeleteService.call(court: @court)
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       json_data = serialize
       Success(court: @court, json: json_data)

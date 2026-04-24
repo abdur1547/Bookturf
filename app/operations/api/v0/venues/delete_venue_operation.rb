@@ -13,13 +13,13 @@ module Api::V0::Venues
       @current_user = current_user
 
       @venue = find_venue(params[:id])
-      return Failure(error: "Venue not found") unless @venue
+      return Failure(:not_found) unless @venue
 
-      return Failure(:unauthorized) unless authorize
+      return Failure(:forbidden) unless authorize
 
       result = Venues::VenueDestroyerService.call(venue: @venue)
 
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       json_data = serialize
 
