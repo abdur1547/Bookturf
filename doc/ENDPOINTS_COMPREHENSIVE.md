@@ -667,14 +667,14 @@ List venues (public view and owner filtered).
 
 **Query Params:**
 - `page` (optional): integer, default: 1
-- `per_page` (optional): integer, default: 20
-- `city_id` (optional): integer
-- `area_id` (optional): integer
-- `sport_type_id` (optional): integer
-- `search` (optional): string, search by name
-- `sort` (optional): `rating`, `name`, `created_at`
+- `per_page` (optional): integer, default: 10, max: 100
+- `city` (optional): string
+- `state` (optional): string
+- `country` (optional): string
+- `search` (optional): string, search by name, address, city, or description
+- `sort` (optional): `name`, `city`, `created_at`
 - `order` (optional): `asc`, `desc`
-- `is_active` (optional): boolean
+- `is_active` (optional): boolean, default: true (only active venues returned when omitted)
 
 **Response Data:**
 ```json
@@ -686,7 +686,7 @@ List venues (public view and owner filtered).
     "description": "string|null",
     "address": "string",
     "city": "string",
-    "area": "string|null",
+    "state": "string|null",
     "country": "string|null",
     "postal_code": "string|null",
     "phone_number": "string|null",
@@ -695,10 +695,7 @@ List venues (public view and owner filtered).
     "latitude": "number|null",
     "longitude": "number|null",
     "google_maps_url": "string|null",
-    "rating": "number|null",
-    "review_count": "integer",
     "courts_count": "integer",
-    "cover_image_url": "string|null",
     "created_at": "ISO8601 string"
   }
 ]
@@ -724,7 +721,6 @@ Get venue details including operating hours.
   "description": "string|null",
   "address": "string",
   "city": "string",
-  "area": "string|null",
   "state": "string|null",
   "country": "string|null",
   "postal_code": "string|null",
@@ -734,27 +730,25 @@ Get venue details including operating hours.
   "latitude": "number|null",
   "longitude": "number|null",
   "google_maps_url": "string|null",
-  "rating": "number|null",
-  "review_count": "integer",
   "courts_count": "integer",
   "created_at": "ISO8601 string",
   "updated_at": "ISO8601 string",
   "owner": {
     "id": "integer",
-    "name": "string",
-    "email": "string"
+    "full_name": "string"
   },
-  "venue_settings": {
+  "venue_setting": {
+    "id": "integer",
     "minimum_slot_duration": "integer|null",
     "maximum_slot_duration": "integer|null",
     "slot_interval": "integer|null",
     "advance_booking_days": "integer|null",
     "requires_approval": "boolean",
-    "cancellation_hours": "integer",
+    "cancellation_hours": "integer|null",
     "timezone": "string",
     "currency": "string"
   },
-  "operating_hours": [
+  "venue_operating_hours": [
     {
       "id": "integer",
       "day_of_week": "0-6",
@@ -763,14 +757,6 @@ Get venue details including operating hours.
       "opens_at": "string|null",
       "closes_at": "string|null",
       "formatted_hours": "string|null"
-    }
-  ],
-  "images": [
-    {
-      "id": "integer",
-      "url": "string",
-      "alt_text": "string|null",
-      "display_order": "integer"
     }
   ]
 }
@@ -793,7 +779,6 @@ Create a new venue (owner onboarding - Step 1).
   "description": "string|null",
   "address": "string",
   "city": "string",
-  "area": "string",
   "state": "string",
   "country": "string",
   "postal_code": "string|null",
@@ -803,20 +788,21 @@ Create a new venue (owner onboarding - Step 1).
   "email": "string|null",
   "is_active": "boolean|null",
   "venue_setting": { // optional
-    "minimum_slot_duration": "number|null", // default to 1h
-    "maximum_slot_duration": "number|null", // default to 1h
-    "slot_interval": "number|null",         // default to 1h
-    "advance_booking_days": "number|null",  // default to 7d
-    "requires_approval": "boolean|null",    // default true
-    "timezone": "string|null", // default to "Asia/Karachi"
-    "currency": "string|null" // default to "Asia/Karachi"
+    "minimum_slot_duration": "integer|null", // default to 60 (minutes)
+    "maximum_slot_duration": "integer|null", // default to 60 (minutes)
+    "slot_interval": "integer|null",         // default to 60 (minutes)
+    "advance_booking_days": "integer|null",  // default to 7
+    "requires_approval": "boolean|null",     // default true
+    "cancellation_hours": "integer|null",    // hours before booking for free cancellation
+    "timezone": "string|null",               // default to "Asia/Karachi"
+    "currency": "string|null"                // default to "PKR"
   },
-  "venue_operating_hours": [ //optional
+  "venue_operating_hours": [ // optional
     {
-      "day_of_week": "integer (0-6)",  // 0=Monday, 6=Sunday. Must include all 7 days
-      "opens_at": "string",       // Time format: HH:MM (e.g., "09:00"). Required if is_closed is false
-      "closes_at": "string",      // Time format: HH:MM (e.g., "23:00"). Required if is_closed is false. Must be after opens_at
-      "is_closed": "boolean"           // If true, opens_at and closes_at are ignored
+      "day_of_week": "integer (0-6)",  // 0=Monday, 6=Sunday
+      "opens_at": "string|null",       // Time format: HH:MM (e.g., "09:00"). Required if is_closed is false
+      "closes_at": "string|null",      // Time format: HH:MM (e.g., "23:00"). Required if is_closed is false. Must be after opens_at
+      "is_closed": "boolean|null"      // If true, opens_at and closes_at are ignored
     }
   ]
 }
@@ -870,23 +856,7 @@ Update venue operating hours (onboarding - Step 2).
 }
 ```
 
-**Response Data:**
-```json
-{
-  "id": "integer",
-  "operating_hours": [
-    {
-      "id": "integer",
-      "day_of_week": "0-6",
-      "day_name": "string",
-      "is_closed": "boolean",
-      "opens_at": "string|null",
-      "closes_at": "string|null",
-      "formatted_hours": "string|null"
-    }
-  ]
-}
-```
+**Response Data:** Same as GET /api/v0/venues/:id
 
 **Status Codes:** 200 OK, 401 Unauthorized, 403 Forbidden, 422 Unprocessable Entity
 
@@ -905,9 +875,10 @@ Update owner onboarding step.
 }
 ```
 
-**Response Data:**
+**Response Data:** Same as GET /api/v0/venues/:id, with two additional fields appended:
 ```json
 {
+  "...": "all fields from GET /api/v0/venues/:id",
   "onboarding_step": "integer",
   "onboarding_completed": "boolean"
 }
@@ -957,14 +928,13 @@ Check venue availability for date range.
     {
       "court_id": "integer",
       "court_name": "string",
-      "sport_type": "string",
       "slots": [
         {
           "start_time": "ISO8601 string",
           "end_time": "ISO8601 string",
           "duration_minutes": "integer",
-          "price_per_hour": "number",
-          "total_amount": "number",
+          "price_per_hour": "string",
+          "total_amount": "string",
           "available": "boolean",
           "booked": "boolean",
           "booking_status": "confirmed|closed|null"
