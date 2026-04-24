@@ -3,7 +3,7 @@ development:
   SECRET_KEY_BASE: some_secrete
   http_basic_auth_user: dev
   http_basic_auth_password: secret
-  CORS_ALLOWED_ORIGINS: "*"
+  CORS_ALLOWED_ORIGINS: "http://localhost:5173"
 
 test:
   REDIS_URL: redis://localhost:6379/1
