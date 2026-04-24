@@ -20,7 +20,6 @@ module Api::V0::Venues
       @params = params
       @current_user = current_user
 
-      return Failure(:forbidden)
       @venues = filter_venues(params)
       @venues = search_venues(@venues, params[:search]) if params[:search].present?
       @venues = sort_venues(@venues, params[:sort], params[:order])
