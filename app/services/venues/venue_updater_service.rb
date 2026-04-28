@@ -24,9 +24,9 @@ module Venues
 
       ActiveRecord::Base.transaction do
         venue.update!(venue_params) if venue_params.present?
-        venue.venue_setting.update!(venue_settings_params) if venue_settings_params.present?
         update_operating_hours if params[:venue_operating_hours].present?
       end
+
       success(venue.reload)
     rescue ActiveRecord::RecordInvalid => e
       failure(e.record.errors.full_messages)
@@ -38,23 +38,13 @@ module Venues
 
     def venue_params
       allowed_keys = %i[name description address city state country postal_code
-                        latitude longitude phone_number email is_active]
+                        latitude longitude phone_number email timezone currency is_active]
       params.compact&.slice(*allowed_keys)
     end
 
-    def venue_settings_params
-      allowed_keys = %i[minimum_slot_duration maximum_slot_duration slot_interval
-                        advance_booking_days requires_approval cancellation_hours
-                        timezone currency]
-      params[:venue_setting]&.compact&.slice(*allowed_keys)
-    end
-
     def update_operating_hours
-      operating_hours = params[:venue_operating_hours]
-
-      operating_hours.each do |hours|
+      params[:venue_operating_hours].each do |hours|
         existing = venue.venue_operating_hours.find_by(day_of_week: hours[:day_of_week])
-
         existing.update!(hours) if existing
       end
     end
