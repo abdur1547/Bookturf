@@ -26,11 +26,11 @@ module Api::V0::PricingRules
       pricing_rule_params = params[:pricing_rule]
 
       @pricing_rule = find_pricing_rule(params[:id])
-      return Failure(error: "Pricing rule not found") unless @pricing_rule
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:not_found) unless @pricing_rule
+      return Failure(:forbidden) unless authorize?
 
       result = PricingRules::UpdateService.call(pricing_rule: @pricing_rule, params: pricing_rule_params)
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       @pricing_rule = result.data
       json_data = serialize

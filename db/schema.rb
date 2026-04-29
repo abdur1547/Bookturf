@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -50,24 +50,30 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.bigint "court_id", null: false
     t.datetime "created_at", null: false
     t.bigint "created_by_id"
+    t.string "created_by_role"
+    t.boolean "deferred_link_claimed", default: false, null: false
     t.integer "duration_minutes", null: false
     t.datetime "end_time", null: false
     t.text "notes"
     t.decimal "paid_amount", precision: 10, scale: 2, default: "0.0"
     t.string "payment_method"
     t.string "payment_status", default: "pending"
+    t.decimal "price_at_booking", precision: 10, scale: 2
+    t.string "share_token"
     t.datetime "start_time", null: false
     t.string "status", default: "confirmed", null: false
     t.decimal "total_amount", precision: 10, scale: 2, default: "0.0"
     t.datetime "updated_at", null: false
     t.bigint "user_id", null: false
     t.bigint "venue_id", null: false
+    t.string "walk_in_name"
     t.index ["booking_number"], name: "index_bookings_on_booking_number", unique: true
     t.index ["cancelled_by_id"], name: "index_bookings_on_cancelled_by_id"
     t.index ["checked_in_by_id"], name: "index_bookings_on_checked_in_by_id"
     t.index ["court_id", "start_time", "end_time"], name: "index_bookings_on_court_id_and_start_time_and_end_time"
     t.index ["court_id"], name: "index_bookings_on_court_id"
     t.index ["created_by_id"], name: "index_bookings_on_created_by_id"
+    t.index ["share_token"], name: "index_bookings_on_share_token", unique: true
     t.index ["start_time", "end_time"], name: "index_bookings_on_start_time_and_end_time"
     t.index ["status"], name: "index_bookings_on_status"
     t.index ["user_id"], name: "index_bookings_on_user_id"
@@ -114,14 +120,19 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.datetime "created_at", null: false
     t.text "description"
     t.integer "display_order", default: 0, null: false
+    t.jsonb "images_data"
     t.boolean "is_active", default: true, null: false
     t.string "name", null: false
+    t.string "qr_code_url"
+    t.boolean "requires_approval", default: false, null: false
+    t.integer "slot_interval", default: 60, null: false
     t.datetime "updated_at", null: false
     t.bigint "venue_id", null: false
     t.index ["court_type_id"], name: "index_courts_on_court_type_id"
     t.index ["is_active"], name: "index_courts_on_is_active"
     t.index ["venue_id", "name"], name: "index_courts_on_venue_id_and_name", unique: true
     t.index ["venue_id"], name: "index_courts_on_venue_id"
+    t.check_constraint "slot_interval > 0", name: "court_slot_interval_positive"
   end
 
   create_table "notifications", force: :cascade do |t|
@@ -253,10 +264,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.string "email", null: false
     t.string "emergency_contact_name"
     t.string "emergency_contact_phone"
-    t.string "first_name", null: false
+    t.string "full_name", null: false
     t.boolean "is_active", default: true, null: false
     t.boolean "is_global_admin", default: false, null: false
-    t.string "last_name", null: false
     t.string "password_digest", null: false
     t.string "phone_number"
     t.string "provider"
@@ -265,8 +275,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["is_active"], name: "index_users_on_is_active"
     t.index ["is_global_admin"], name: "index_users_on_is_global_admin"
-    t.index ["phone_number"], name: "index_users_on_phone_number"
+    t.index ["phone_number"], name: "index_users_on_phone_number", unique: true
     t.index ["provider", "uid"], name: "index_users_on_provider_and_uid", unique: true
+  end
+
+  create_table "venue_closures", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "created_by_id"
+    t.text "description"
+    t.datetime "end_time", null: false
+    t.datetime "start_time", null: false
+    t.string "title", null: false
+    t.datetime "updated_at", null: false
+    t.bigint "venue_id", null: false
+    t.index ["created_by_id"], name: "index_venue_closures_on_created_by_id"
+    t.index ["start_time", "end_time"], name: "index_venue_closures_on_start_time_and_end_time"
+    t.index ["venue_id", "start_time", "end_time"], name: "index_venue_closures_on_venue_id_and_start_time_and_end_time"
+    t.index ["venue_id", "start_time"], name: "index_venue_closures_on_venue_id_and_start_time"
+    t.index ["venue_id"], name: "index_venue_closures_on_venue_id"
+    t.check_constraint "end_time > start_time", name: "closure_end_after_start"
   end
 
   create_table "venue_operating_hours", force: :cascade do |t|
@@ -280,24 +307,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.index ["venue_id", "day_of_week"], name: "index_venue_operating_hours_on_venue_id_and_day_of_week", unique: true
     t.index ["venue_id"], name: "index_venue_operating_hours_on_venue_id"
     t.check_constraint "day_of_week >= 0 AND day_of_week <= 6", name: "valid_day_of_week"
-  end
-
-  create_table "venue_settings", force: :cascade do |t|
-    t.integer "advance_booking_days", default: 30
-    t.integer "cancellation_hours"
-    t.datetime "created_at", null: false
-    t.string "currency", default: "PKR"
-    t.integer "maximum_slot_duration", default: 180, null: false
-    t.integer "minimum_slot_duration", default: 60, null: false
-    t.boolean "requires_approval", default: false, null: false
-    t.integer "slot_interval", default: 30, null: false
-    t.string "timezone", default: "Asia/Karachi", null: false
-    t.datetime "updated_at", null: false
-    t.bigint "venue_id", null: false
-    t.index ["venue_id"], name: "index_venue_settings_on_venue_id", unique: true
-    t.check_constraint "maximum_slot_duration >= minimum_slot_duration", name: "maximum_greater_than_minimum"
-    t.check_constraint "minimum_slot_duration > 0", name: "minimum_slot_duration_positive"
-    t.check_constraint "slot_interval > 0", name: "slot_interval_positive"
   end
 
   create_table "venue_users", force: :cascade do |t|
@@ -318,6 +327,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.string "city"
     t.string "country"
     t.datetime "created_at", null: false
+    t.string "currency", default: "PKR", null: false
     t.text "description"
     t.string "email"
     t.boolean "is_active", default: true, null: false
@@ -327,8 +337,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
     t.bigint "owner_id", null: false
     t.string "phone_number"
     t.string "postal_code"
+    t.string "qr_code_url"
     t.string "slug", null: false
     t.string "state"
+    t.string "timezone", default: "Asia/Karachi", null: false
     t.datetime "updated_at", null: false
     t.index ["city"], name: "index_venues_on_city"
     t.index ["country"], name: "index_venues_on_country"
@@ -363,8 +375,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_101733) do
   add_foreign_key "user_roles", "roles"
   add_foreign_key "user_roles", "users"
   add_foreign_key "user_roles", "users", column: "assigned_by_id"
+  add_foreign_key "venue_closures", "users", column: "created_by_id"
+  add_foreign_key "venue_closures", "venues"
   add_foreign_key "venue_operating_hours", "venues"
-  add_foreign_key "venue_settings", "venues"
   add_foreign_key "venue_users", "users"
   add_foreign_key "venue_users", "users", column: "added_by_id"
   add_foreign_key "venue_users", "venues"

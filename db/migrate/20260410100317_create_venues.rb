@@ -22,6 +22,13 @@ class CreateVenues < ActiveRecord::Migration[8.1]
       t.string :phone_number
       t.string :email
 
+      # QR code for check-in
+      t.string :qr_code_url # URL of generated QR PNG on S3
+
+      # Localization
+      t.string :timezone, null: false, default: 'Asia/Karachi'
+      t.string :currency, null: false, default: 'PKR'
+
       # Status
       t.boolean :is_active, default: true, null: false
 

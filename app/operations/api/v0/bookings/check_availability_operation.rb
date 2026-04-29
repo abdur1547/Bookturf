@@ -17,14 +17,14 @@ module Api::V0::Bookings
       @params = params
       @current_user = current_user
 
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:forbidden) unless authorize?
 
       court = Court.find_by(id: params[:availability][:court_id])
-      return Failure(error: "Court not found") unless court
+      return Failure(:not_found) unless court
 
       start_time = parse_datetime(params[:availability][:start_time])
       end_time = parse_datetime(params[:availability][:end_time])
-      return Failure(error: "Invalid availability window") unless start_time && end_time
+      return Failure("Invalid availability window") unless start_time && end_time
 
       available = Booking.slot_available?(court, start_time, end_time, exclude_booking_id: params[:availability][:exclude_booking_id])
 

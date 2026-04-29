@@ -6,8 +6,7 @@ class CreateUsers < ActiveRecord::Migration[8.1]
       t.string :password_digest, null: false
 
       # Personal Information
-      t.string :first_name, null: false
-      t.string :last_name, null: false
+      t.string :full_name, null: false
       t.string :phone_number
 
       # Emergency Contact
@@ -27,7 +26,7 @@ class CreateUsers < ActiveRecord::Migration[8.1]
     end
 
     add_index :users, :email, unique: true
-    add_index :users, :phone_number
+    add_index :users, :phone_number, unique: true
     add_index :users, [ :provider, :uid ], unique: true
     add_index :users, :is_active
     add_index :users, :is_global_admin

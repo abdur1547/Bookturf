@@ -14,15 +14,15 @@ module Api::V0::Roles
       @role_id = params[:id]
 
       @role = Role.find_by(id: @role_id)
-      return Failure(error: "Role not found") unless @role
+      return Failure(:not_found) unless @role
 
-      return Failure(:unauthorized) unless authorize
+      return Failure(:forbidden) unless authorize
 
       result = Roles::DeleteService.call(
         role: @role,
         deleted_by: current_user
       )
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
       json_data = { message: "Role deleted successfully" }
       Success(role: @role, json: json_data)
     end

@@ -2,18 +2,15 @@
 
 module Venues
   class OperatingHoursValidatorService < BaseService
-    def call(operating_hours:)
+    def call(operating_hours:, is_update: false)
+      @operating_hours = operating_hours
       return failure("Operating hours must be an array") unless operating_hours.is_a?(Array)
 
-      # Check if all 7 days are present
-      days_provided = operating_hours.map { |h| h[:day_of_week] || h["day_of_week"] }.compact.sort
-      expected_days = (0..6).to_a
-
-      unless days_provided == expected_days
-        return failure("All 7 days must be provided (0-6)")
+      unless is_update
+        result = validate_all_seven_days_are_present
+        return result unless result.success?
       end
 
-      # Validate each day
       operating_hours.each do |hours|
         validation_result = validate_single_day(hours)
         return validation_result unless validation_result.success?
@@ -23,6 +20,15 @@ module Venues
     end
 
     private
+    attr_reader :operating_hours
+
+    def validate_all_seven_days_are_present
+      days_provided = operating_hours.map { |h| h[:day_of_week] || h["day_of_week"] }.compact.sort
+      expected_days = (0..6).to_a
+      return failure("All 7 days must be provided (0-6)") unless days_provided == expected_days
+
+      success(true)
+    end
 
     def validate_single_day(hours)
       day = hours[:day_of_week] || hours["day_of_week"]

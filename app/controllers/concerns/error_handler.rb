@@ -8,10 +8,10 @@ module ErrorHandler
       case exception.class.name
       when ActiveRecord::RecordInvalid.name
         unprocessable_entity(exception.message)
-      when ::Auth::InvalidTokenError.name, ::Auth::MissingTokenError.name
+      when Pundit::NotAuthorizedError.name
         forbidden_response(exception.message)
-      when ::Auth::UnauthorizedError.name
-        unauthorized_response
+      when ::Auth::UnauthorizedError.name, ::Auth::InvalidTokenError.name, ::Auth::MissingTokenError.name
+        unauthenticated_response
       else
         process_standard_error(exception)
       end
@@ -28,7 +28,7 @@ module ErrorHandler
     render json: { success: false, errors: [ exception.message ] }, status: :internal_server_error
   end
 
-  def unauthorized_response(reason = "You are unauthorized to view this resource")
+  def unauthenticated_response(reason = "Authentication is required and has failed or has not been provided")
     render json: { success: false, errors: [ reason ] }, status: :unauthorized
   end
 
@@ -37,10 +37,21 @@ module ErrorHandler
   end
 
   def unprocessable_entity(reason)
-    render json: { success: false, errors: reason }, status: :unprocessable_entity
+    # Ensure reason is always an array of strings
+    errors = case reason
+    when Array
+      reason
+    when Hash
+      reason.flat_map { |field, messages| Array(messages).map { |msg| "#{field} #{msg}".strip } }
+    when ActiveModel::Errors
+      reason.full_messages
+    else
+      Array(reason).map(&:to_s)
+    end
+    render json: { success: false, errors: }, status: :unprocessable_entity
   end
 
-  def forbidden_response(reason = "forbidden")
+  def forbidden_response(reason = "The client does not have access rights to the content")
     render json: { success: false, errors: [ reason ] }, status: :forbidden
   end
 end

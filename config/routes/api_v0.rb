@@ -13,9 +13,32 @@ namespace :api do
       post :verify_reset_otp, to: "auth#verify_reset_otp"
     end
 
+    # User Management Endpoints
+    scope :users do
+      get :me, to: "users#show"
+    end
+
+    resources :users, only: %i[update destroy] do
+      member do
+        patch :change_password
+      end
+
+      collection do
+        post :upload_avatar
+      end
+    end
+
     resources :roles, only: API_ONLY_ROUTES
-    resources :venues, only: API_ONLY_ROUTES
-    resources :courts, only: API_ONLY_ROUTES
+    resources :venues, only: API_ONLY_ROUTES do
+      member do
+        get :availability
+      end
+    end
+    resources :courts, only: API_ONLY_ROUTES do
+      member do
+        patch :reorder
+      end
+    end
     resources :pricing_rules, only: API_ONLY_ROUTES
 
     resources :bookings, only: API_ONLY_ROUTES do

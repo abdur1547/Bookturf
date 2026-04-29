@@ -18,7 +18,7 @@ module Api::V0::Bookings
       @params = params
       @current_user = current_user
 
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:forbidden) unless authorize?
 
       @bookings = accessible_bookings
       @bookings = filter_bookings(@bookings)

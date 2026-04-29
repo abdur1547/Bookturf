@@ -13,7 +13,7 @@ module Api::V0::Venues
       @current_user = current_user
 
       @venue = find_venue(params[:id])
-      return Failure(error: "Venue not found") unless @venue
+      return Failure(:not_found) unless @venue
 
       json_data = serialize
 

@@ -1,0 +1,57 @@
+<div class="space-y-6">
+    <div
+        class="flex flex-col gap-4 rounded-3xl border border-muted/50 bg-background p-5 shadow-sm sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">Users</p>
+            <h1 class="mt-2 text-3xl font-semibold text-foreground">All users</h1>
+            <p class="text-sm text-muted-foreground">Manage all registered users and open a user record to update or
+                delete.</p>
+        </div>
+        <app-button routerLink="/users/new" tone="primary" impact="bold" shape="rounded" size="medium">
+            Add new user
+        </app-button>
+    </div>
+
+    <div class="rounded-3xl border border-muted/50 bg-background p-4 shadow-sm">
+        <div *ngIf="loading"
+            class="rounded-xl border border-muted/30 bg-muted/10 p-6 text-center text-sm text-muted-foreground">
+            Loading users...
+        </div>
+
+        <div *ngIf="error && !loading"
+            class="rounded-xl border border-destructive/20 bg-destructive/10 p-4 text-sm text-destructive">
+            {{ error }}
+        </div>
+
+        <div *ngIf="!loading && !error && users.length === 0"
+            class="rounded-xl border border-muted/20 bg-muted/10 p-6 text-center text-sm text-muted-foreground">
+            No users found. Use "Add new user" to create the first user.
+        </div>
+
+        <div *ngIf="!loading && users.length > 0" class="overflow-x-auto">
+            <table class="min-w-full text-left text-sm text-muted-foreground">
+                <thead class="border-b border-muted/30 text-xs uppercase tracking-[0.16em] text-muted-foreground">
+                    <tr>
+                        <th class="px-4 py-3">Name</th>
+                        <th class="px-4 py-3">Email</th>
+                        <th class="px-4 py-3">Created</th>
+                        <th class="px-4 py-3">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let user of users" class="cursor-pointer border-b border-muted/10 hover:bg-muted/5"
+                        (click)="openUser(user)">
+                        <td class="px-4 py-4 font-medium text-foreground">{{ getFullName(user) }}</td>
+                        <td class="px-4 py-4">{{ user.email }}</td>
+                        <td class="px-4 py-4">{{ user.created_at ? (user.created_at | date:'mediumDate') : '-' }}</td>
+                        <td class="px-4 py-4">
+                            <app-button type="button" impact="none" tone="primary" shape="rounded" size="small">
+                                Edit
+                            </app-button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

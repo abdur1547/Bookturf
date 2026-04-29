@@ -18,21 +18,20 @@ RSpec.describe User, type: :model do
   describe 'validations' do
     subject { build(:user) }
 
-    it { should validate_presence_of(:first_name) }
-    it { should validate_presence_of(:last_name) }
+    it { should validate_presence_of(:full_name) }
     it { should validate_presence_of(:email) }
     it { should validate_uniqueness_of(:email).case_insensitive }
 
-    it 'validates first_name length' do
-      user = build(:user, first_name: 'a')
+    it 'validates full_name length' do
+      user = build(:user, full_name: 'a')
       expect(user).not_to be_valid
-      expect(user.errors[:first_name]).to include('is too short (minimum is 2 characters)')
+      expect(user.errors[:full_name]).to include('is too short (minimum is 2 characters)')
     end
 
-    it 'validates last_name length' do
-      user = build(:user, last_name: 'a')
+    it 'validates full_name maximum length' do
+      user = build(:user, full_name: 'a' * 101)
       expect(user).not_to be_valid
-      expect(user.errors[:last_name]).to include('is too short (minimum is 2 characters)')
+      expect(user.errors[:full_name]).to include('is too long (maximum is 100 characters)')
     end
 
     it 'validates phone number format' do
@@ -80,13 +79,7 @@ RSpec.describe User, type: :model do
   end
 
   describe 'instance methods' do
-    let(:user) { create(:user, first_name: 'John', last_name: 'Doe') }
-
-    describe '#full_name' do
-      it 'returns combined first and last name' do
-        expect(user.full_name).to eq('John Doe')
-      end
-    end
+    let(:user) { create(:user, full_name: 'John Doe') }
 
     describe '#activate!' do
       it 'sets is_active to true' do

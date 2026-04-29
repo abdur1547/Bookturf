@@ -31,13 +31,13 @@ require 'rails_helper'
 #
 #   # Using let for test data
 #   describe '#full_name' do
-#     let(:user) { build(:user, first_name: 'John', last_name: 'Doe') }
+#     let(:user) { build(:user, full_name: 'John Doe') }
 #
 #     it 'returns the full name' do
 #       expect(user.full_name).to eq('John Doe')
 #     end
 #
-#     context 'when first name is missing' do
+#     context 'when full name is missing' do
 #       let(:user) { build(:user, first_name: nil, last_name: 'Doe') }
 #
 #       it 'returns only the last name' do

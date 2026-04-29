@@ -1,0 +1,88 @@
+<div class="space-y-6">
+    <div class="rounded-3xl border border-muted/50 bg-background p-5 shadow-sm">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+                <p class="text-sm font-medium uppercase tracking-[0.16em] text-muted-foreground">Users</p>
+                <h1 class="mt-2 text-3xl font-semibold text-foreground">
+                    {{ isEditMode ? 'Edit user' : 'Create new user' }}
+                </h1>
+                <p class="text-sm text-muted-foreground">
+                    {{ isEditMode ? 'Update user details, or delete this user if no longer needed.' : 'Fill out the form
+                    to add a new user.' }}
+                </p>
+            </div>
+            <app-button type="button" impact="none" tone="light" shape="rounded" size="medium" (click)="onCancel()">
+                Cancel
+            </app-button>
+        </div>
+    </div>
+
+    <div class="rounded-3xl border border-muted/50 bg-background p-6 shadow-sm">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" class="space-y-6">
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                    <label for="first-name" class="text-sm font-medium text-foreground">First name</label>
+                    <input id="first-name" type="text" formControlName="first_name"
+                        class="w-full rounded-xl border border-muted/50 bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                    <p *ngIf="firstNameControl?.invalid && firstNameControl?.touched" class="text-sm text-destructive">
+                        First name is required.
+                    </p>
+                </div>
+
+                <div class="space-y-2">
+                    <label for="last-name" class="text-sm font-medium text-foreground">Last name</label>
+                    <input id="last-name" type="text" formControlName="last_name"
+                        class="w-full rounded-xl border border-muted/50 bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                    <p *ngIf="lastNameControl?.invalid && lastNameControl?.touched" class="text-sm text-destructive">
+                        Last name is required.
+                    </p>
+                </div>
+            </div>
+
+            <div class="space-y-2">
+                <label for="email" class="text-sm font-medium text-foreground">Email address</label>
+                <input id="email" type="email" formControlName="email"
+                    class="w-full rounded-xl border border-muted/50 bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10" />
+                <p *ngIf="emailControl?.invalid && emailControl?.touched" class="text-sm text-destructive">
+                    <span *ngIf="emailControl?.errors?.['required']">Email is required.</span>
+                    <span *ngIf="emailControl?.errors?.['email']">Enter a valid email address.</span>
+                </p>
+            </div>
+
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="space-y-2">
+                    <label for="password" class="text-sm font-medium text-foreground">Password</label>
+                    <input id="password" type="password" formControlName="password"
+                        class="w-full rounded-xl border border-muted/50 bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        [placeholder]="isEditMode ? 'Leave blank to keep password' : 'New password'" />
+                </div>
+
+                <div class="space-y-2">
+                    <label for="password-confirmation" class="text-sm font-medium text-foreground">Confirm
+                        password</label>
+                    <input id="password-confirmation" type="password" formControlName="password_confirmation"
+                        class="w-full rounded-xl border border-muted/50 bg-background px-4 py-3 text-sm text-foreground outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/10"
+                        [placeholder]="isEditMode ? 'Leave blank to keep password' : 'Confirm password'" />
+                    <p *ngIf="passwordControl?.value && passwordConfirmationControl?.value && passwordControl?.value !== passwordConfirmationControl?.value"
+                        class="text-sm text-destructive">
+                        Passwords must match.
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3 pt-2">
+                <app-button type="submit" [disabled]="saving || form.invalid" tone="primary" impact="bold"
+                    shape="rounded" size="medium">
+                    {{ isEditMode ? 'Update user' : 'Create user' }}
+                </app-button>
+                <app-button type="button" tone="light" impact="none" shape="rounded" size="medium" (click)="onCancel()">
+                    Cancel
+                </app-button>
+                <app-button *ngIf="isEditMode" type="button" tone="danger" impact="none" shape="rounded" size="medium"
+                    (click)="onDelete()">
+                    Delete user
+                </app-button>
+            </div>
+        </form>
+    </div>
+</div>

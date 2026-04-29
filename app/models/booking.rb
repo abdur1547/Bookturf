@@ -2,9 +2,10 @@ class Booking < ApplicationRecord
   include PublicActivity::Model
   tracked owner: ->(controller, model) { controller&.current_user || model.created_by || model.user }
 
-  STATUSES = %w[confirmed completed cancelled no_show].freeze
+  STATUSES = %w[pending confirmed cancelled no_show].freeze
   PAYMENT_METHODS = %w[cash online card].freeze
   PAYMENT_STATUSES = %w[pending paid refunded].freeze
+  CREATED_BY_ROLES = %w[customer staff owner].freeze
 
   belongs_to :user
   belongs_to :court
@@ -22,17 +23,21 @@ class Booking < ApplicationRecord
   validates :status, presence: true, inclusion: { in: STATUSES }
   validates :payment_method, inclusion: { in: PAYMENT_METHODS, allow_blank: true }
   validates :payment_status, inclusion: { in: PAYMENT_STATUSES }
+  validates :created_by_role, inclusion: { in: CREATED_BY_ROLES }, allow_nil: true
+  validates :share_token, uniqueness: true, allow_nil: true
+  validate :either_user_or_walk_in_name
 
   validate :end_time_after_start_time
   validate :no_overlapping_bookings
   validate :duration_matches_time_difference
   validate :within_operating_hours
-  validate :respects_slot_durations
 
   before_validation :set_venue, if: -> { court.present? && venue.blank? }
   before_validation :calculate_duration, if: -> { start_time.present? && end_time.present? }
   before_validation :calculate_total_amount, if: :new_record?
   before_validation :generate_booking_number, if: :new_record?
+  before_validation :generate_share_token, if: :new_record?
+  before_validation :set_created_by_role, if: -> { created_by.present? && created_by_role.blank? }
 
   scope :confirmed, -> { where(status: "confirmed") }
   scope :completed, -> { where(status: "completed") }
@@ -166,10 +171,14 @@ class Booking < ApplicationRecord
   def calculate_total_amount
     return if start_time.blank? || court.blank?
 
-    # Calculate based on duration and pricing rules
-    hours = duration_hours
-    price_per_hour = PricingRule.price_for(court.court_type, start_time)
-    self.total_amount = (price_per_hour * hours).round(2)
+    # Use price_at_booking if already set, otherwise calculate
+    if price_at_booking.blank?
+      hours = duration_hours
+      price_per_hour = PricingRule.price_for(court.court_type, start_time)
+      self.total_amount = (price_per_hour * hours).round(2)
+    else
+      self.total_amount = (price_at_booking * duration_hours).round(2)
+    end
   end
 
   def generate_booking_number
@@ -189,6 +198,24 @@ class Booking < ApplicationRecord
     end
 
     self.booking_number = "BK-#{venue_slug}-#{date_str}-#{sequence.to_s.rjust(4, '0')}"
+  end
+
+  def generate_share_token
+    loop do
+      self.share_token = SecureRandom.urlsafe_base64(12)
+      break unless Booking.exists?(share_token: share_token)
+    end
+  end
+
+  def set_created_by_role
+    # Default to customer if not set
+    self.created_by_role ||= "customer"
+  end
+
+  def either_user_or_walk_in_name
+    if user.blank? && walk_in_name.blank?
+      errors.add(:base, "Either user_id or walk_in_name must be provided")
+    end
   end
 
   def end_time_after_start_time
@@ -235,21 +262,6 @@ class Booking < ApplicationRecord
 
     if start_time_of_day < opens_at || end_time_of_day > closes_at
       errors.add(:base, "Booking must be within operating hours (#{operating_hours.formatted_hours})")
-    end
-  end
-
-  def respects_slot_durations
-    return if duration_minutes.blank? || venue.blank?
-
-    settings = venue.venue_setting
-    return if settings.blank?
-
-    if duration_minutes < settings.minimum_slot_duration
-      errors.add(:duration_minutes, "must be at least #{settings.minimum_slot_duration} minutes")
-    end
-
-    if duration_minutes > settings.maximum_slot_duration
-      errors.add(:duration_minutes, "cannot exceed #{settings.maximum_slot_duration} minutes")
     end
   end
 end

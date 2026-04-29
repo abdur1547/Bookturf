@@ -7,20 +7,19 @@ class BaseOperation
   include Dry::Monads[:result, :do]
 
   class Result
-    attr_reader :success, :value, :errors
+    attr_reader :success, :value, :errors, :error_type
 
-    def initialize(success:, value: nil, errors: nil)
+    def initialize(success:, value: nil, errors: nil, error_type: nil)
       @success = success
       @value = value
       @errors = errors
+      @error_type = error_type
     end
   end
 
   class << self
-    # Define an inline contract for parameter validation
-    # @yield Block containing dry-validation schema definition
-    def contract(&block)
-      @contract_class = Class.new(Dry::Validation::Contract, &block)
+    def contract(parent_class = Dry::Validation::Contract, &block)
+      @contract_class = Class.new(parent_class, &block)
     end
 
     # Set an external contract class for parameter validation
@@ -66,6 +65,29 @@ class BaseOperation
 
   private
 
+  # Format errors into a flat array of strings
+  # Handles various error formats: hashes, arrays, objects with errors method
+  # @param errors [Hash, Array, Object] Errors in various formats
+  # @return [Array<String>] Flat array of error messages
+  def format_errors(errors)
+    case errors
+    when Array
+      # If already an array, ensure all elements are strings
+      errors.map { |e| e.is_a?(String) ? e : e.to_s }
+    when Hash
+      # Convert hash to array of "field message" strings
+      errors.flat_map do |field, messages|
+        Array(messages).map { |message| "#{field} #{message}".strip }
+      end
+    when ActiveModel::Errors
+      # Handle ActiveRecord/ActiveModel errors
+      errors.full_messages
+    else
+      # For other objects, try to convert to string array
+      Array(errors).map(&:to_s)
+    end
+  end
+
   # Validate parameters using the defined contract
   # @param params [Hash] Parameters to validate
   # @return [Dry::Validation::Result] Validation result
@@ -83,9 +105,12 @@ class BaseOperation
       Result.new(success: true, value: monad_result.value!)
     when Dry::Monads::Failure
       failure_value = monad_result.failure
-      Result.new(success: false, errors: failure_value)
+      if failure_value.is_a?(Symbol)
+        Result.new(success: false, error_type: failure_value)
+      else
+        Result.new(success: false, errors: format_errors(failure_value))
+      end
     else
-      # Fallback for unexpected result types
       Result.new(success: true, value: monad_result)
     end
   end

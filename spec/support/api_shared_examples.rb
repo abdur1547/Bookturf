@@ -67,7 +67,7 @@ RSpec.shared_examples "invalid OTP scenario" do
   include_examples "unprocessable entity response"
 
   it "includes invalid or expired error message" do
-    expect(response.parsed_body[:errors][:error]).to include("Invalid or expired")
+    expect(response.parsed_body[:errors].first).to include("Invalid or expired")
   end
 
   it "does not update the user's password" do
@@ -90,7 +90,7 @@ RSpec.shared_examples "validation error scenario" do |field|
   include_examples "unprocessable entity response"
 
   it "includes #{field} in errors" do
-    expect(response.parsed_body[:errors]).to have_key(field)
+    expect(response.parsed_body[:errors].first).to include(field.to_s)
   end
 
   it "does not update password" do

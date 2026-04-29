@@ -13,11 +13,11 @@ module Api::V0::PricingRules
       @current_user = current_user
 
       @pricing_rule = find_pricing_rule(params[:id])
-      return Failure(error: "Pricing rule not found") unless @pricing_rule
-      return Failure(:unauthorized) unless authorize?
+      return Failure(:not_found) unless @pricing_rule
+      return Failure(:forbidden) unless authorize?
 
       result = PricingRules::DeleteService.call(pricing_rule: @pricing_rule)
-      return Failure(error: result.error) unless result.success?
+      return Failure(result.error) unless result.success?
 
       json_data = serialize
       Success(pricing_rule: @pricing_rule, json: json_data)

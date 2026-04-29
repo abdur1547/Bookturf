@@ -77,6 +77,9 @@ GEM
       uri (>= 0.13.1)
     addressable (2.8.7)
       public_suffix (>= 2.0.2, < 7.0)
+    apipie-rails (1.5.0)
+      actionpack (>= 5.0)
+      activesupport (>= 5.0)
     ast (2.4.3)
     base64 (0.3.0)
     bcrypt (3.1.22)
@@ -254,6 +257,16 @@ GEM
     minitest (6.0.2)
       drb (~> 2.0)
       prism (~> 1.5)
+    mission_control-jobs (1.1.0)
+      actioncable (>= 7.1)
+      actionpack (>= 7.1)
+      activejob (>= 7.1)
+      activerecord (>= 7.1)
+      importmap-rails (>= 1.2.1)
+      irb (~> 1.13)
+      railties (>= 7.1)
+      stimulus-rails
+      turbo-rails
     msgpack (1.8.0)
     net-imap (0.6.3)
       date
@@ -512,6 +525,7 @@ PLATFORMS
   x86_64-linux-musl
 
 DEPENDENCIES
+  apipie-rails (~> 1.4)
   bcrypt (~> 3.1.7)
   better_errors
   binding_of_caller
@@ -535,6 +549,7 @@ DEPENDENCIES
   json_matchers
   jwt (~> 3.1)
   kamal
+  mission_control-jobs
   oj
   pagy (~> 43.4)
   pg (~> 1.6)

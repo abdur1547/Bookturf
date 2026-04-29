@@ -17,7 +17,7 @@ module Api::V0::Roles
       @current_user = current_user
       role_params = params[:role]
 
-      return Failure(:unauthorized) unless authorize
+      return Failure(:forbidden) unless authorize
 
       result = Roles::CreateService.call(
         params: role_params.except(:permission_ids),

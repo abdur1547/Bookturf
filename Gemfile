@@ -35,6 +35,7 @@ gem "tzinfo-data", platforms: %i[ windows jruby ]
 gem "solid_cache"
 gem "solid_queue"
 gem "solid_cable"
+gem "mission_control-jobs"
 
 # Reduces boot times through caching; required in config/boot.rb
 gem "bootsnap", require: false
@@ -65,6 +66,9 @@ gem "pundit", "~> 2.4"
 
 # Activity tracking
 gem "public_activity", "~> 3.0"
+
+# API Documentation
+gem "apipie-rails", "~> 1.4"
 
 group :development, :test do
   gem "debug", platforms: %i[ mri windows ], require: "debug/prelude"

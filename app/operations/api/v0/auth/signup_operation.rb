@@ -4,11 +4,13 @@ module Api::V0::Auth
   class SignupOperation < BaseOperation
     contract do
       params do
-        required(:first_name).filled(:string)
-        required(:last_name).filled(:string)
+        required(:full_name).filled(:string)
         required(:email).filled(:string)
         required(:password).filled(:string)
-        required(:password_confirmation).filled(:string)
+      end
+
+      rule(:password) do
+        key.failure("must be at least 6 characters") if value.length < 6
       end
     end
 
@@ -27,18 +29,17 @@ module Api::V0::Auth
 
     def validate_email
       email_regex = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/i
-      email_regex.match?(params[:email]) ? Success() : Failure(error_message(:email, "invalid email address"))
+      email_regex.match?(params[:email]) ? Success() : Failure([ "email invalid email address" ])
     end
 
     def create_user
       @user = User.new(email: params[:email],
                         password: params[:password],
-                        password_confirmation: params[:password_confirmation],
-                        first_name: params[:first_name],
-                        last_name: params[:last_name])
+                        password_confirmation: params[:password],
+                        full_name: params[:full_name])
       return Success() if user.save
 
-      Failure(user.errors.to_hash)
+      Failure(user.errors)
     end
 
     def issue_new_tokens
@@ -48,13 +49,10 @@ module Api::V0::Auth
     end
 
     def json_serialize
-      Api::V0::UserBlueprint.render_as_hash(user).merge(token_pair)
-    end
-
-    def token_pair
       {
         access_token: "#{Constants::TOKEN_TYPE} #{access_token}",
-        refresh_token:
+        refresh_token:,
+        user: Api::V0::UserBlueprint.render_as_hash(user)
       }
     end
   end
