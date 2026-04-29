@@ -6,10 +6,12 @@ module Venues
       @params = params
       @owner = owner
 
-      validation_result = Venues::OperatingHoursValidatorService.call(
-        operating_hours: params[:venue_operating_hours]
-      )
-      return validation_result unless validation_result.success?
+      if params[:venue_operating_hours].present?
+        validation_result = Venues::OperatingHoursValidatorService.call(
+          operating_hours: params[:venue_operating_hours]
+        )
+        return validation_result unless validation_result.success?
+      end
 
       ActiveRecord::Base.transaction do
         venue = Venue.create!(venue_params)
