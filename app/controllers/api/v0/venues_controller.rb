@@ -4,56 +4,171 @@ module Api::V0
   class VenuesController < ApiController
     skip_before_action :authenticate_user!, only: [ :index, :show, :availability ]
 
-    # GET /api/v0/venues
+    resource_description do
+      resource_id "Venues"
+      api_versions "v0"
+      short "Manage sports venues — listing, creation, updates, availability, and onboarding"
+      description <<~DESC
+        Venues are the core resource of Bookturf. A venue owner can create and manage venues,
+        including their courts, operating hours, and onboarding progress.
+        Public endpoints (index, show, availability) do not require authentication.
+      DESC
+    end
+
+    api :GET, "/venues", "List all active venues"
+    description "Returns a paginated list of venues. Defaults to active venues only."
+    param :page, Integer, required: false, desc: "Page number (default: 1)"
+    param :per_page, Integer, required: false, desc: "Results per page, max 100 (default: 10)"
+    param :city, String, required: false, desc: "Filter by city (exact match)"
+    param :state, String, required: false, desc: "Filter by state (exact match)"
+    param :country, String, required: false, desc: "Filter by country (exact match)"
+    param :is_active, :bool, required: false, desc: "Filter by active status (default: true)"
+    param :search, String, required: false, desc: "Full-text search across name, address, city, description"
+    param :sort, %w[name city created_at], required: false, desc: "Sort field (default: name)"
+    param :order, %w[asc desc], required: false, desc: "Sort direction (default: asc)"
+    returns code: 200, desc: "List of venues" do
+      property :success, [ true ]
+      property :data, Array, desc: "Array of venue objects (list view)"
+    end
     def index
       result = Api::V0::Venues::ListVenuesOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result)
     end
 
-    # GET /api/v0/venues/:id
+    api :GET, "/venues/:id", "Retrieve a single venue with full details"
+    param :id, Integer, required: true, desc: "Venue ID"
+    returns code: 200, desc: "Venue details" do
+      property :success, [ true ]
+      property :data, Hash, desc: "Venue object (detailed view) including owner, courts count, and operating hours"
+    end
+    error code: 404, desc: "Venue not found"
     def show
       result = Api::V0::Venues::GetVenueOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result)
     end
 
-    # GET /api/v0/venues/:id/availability
+    api :GET, "/venues/:id/availability", "Get available time slots for a venue on a given date"
+    param :id, Integer, required: true, desc: "Venue ID"
+    param :date, String, required: true, desc: "Date to check availability for (YYYY-MM-DD)"
+    returns code: 200, desc: "Available slots for each court in the venue"
+    error code: 404, desc: "Venue not found"
     def availability
       result = Api::V0::Venues::ListAvailabilityOperation.call(params.to_unsafe_h)
 
       handle_operation_response(result)
     end
 
-    # POST /api/v0/venues
+    api :POST, "/venues", "Create a new venue"
+    header "Authorization", "Bearer <access_token>", required: true
+    param :name, String, required: true, desc: "Venue name"
+    param :address, String, required: true, desc: "Street address"
+    param :city, String, required: true, desc: "City"
+    param :state, String, required: true, desc: "State / province"
+    param :country, String, required: true, desc: "Country"
+    param :description, String, required: false, desc: "Venue description"
+    param :postal_code, String, required: false, desc: "Postal / ZIP code"
+    param :phone_number, String, required: false, desc: "Contact phone number"
+    param :email, String, required: false, desc: "Contact email address"
+    param :latitude, Float, required: false, desc: "GPS latitude"
+    param :longitude, Float, required: false, desc: "GPS longitude"
+    param :timezone, String, required: false, desc: "IANA timezone identifier (e.g. Asia/Karachi)"
+    param :currency, String, required: false, desc: "ISO 4217 currency code (e.g. PKR)"
+    param :is_active, :bool, required: false, desc: "Whether the venue is publicly visible (default: false)"
+    param :venue_operating_hours, Array, required: false, desc: "Operating hours per day" do
+      param :day_of_week, Integer, required: true, desc: "0 = Sunday … 6 = Saturday"
+      param :opens_at, String, required: false, desc: "Opening time (HH:MM)"
+      param :closes_at, String, required: false, desc: "Closing time (HH:MM)"
+      param :is_closed, :bool, required: false, desc: "Mark day as closed"
+    end
+    returns code: 201, desc: "Venue created" do
+      property :success, [ true ]
+      property :data, Hash, desc: "Created venue object (detailed view)"
+    end
+    error code: 401, desc: "Not authenticated"
+    error code: 403, desc: "Insufficient permissions (only venue owners / admins)"
+    error code: 422, desc: "Validation error"
     def create
       result = Api::V0::Venues::CreateVenueOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result, :created)
     end
 
-    # PATCH/PUT /api/v0/venues/:id
+    api :PUT, "/venues/:id", "Update an existing venue"
+    api :PATCH, "/venues/:id", "Update an existing venue (partial)"
+    header "Authorization", "Bearer <access_token>", required: true
+    param :id, Integer, required: true, desc: "Venue ID"
+    param :name, String, required: false, desc: "Venue name"
+    param :address, String, required: false, desc: "Street address"
+    param :city, String, required: false, desc: "City"
+    param :state, String, required: false, desc: "State / province"
+    param :country, String, required: false, desc: "Country"
+    param :description, String, required: false, desc: "Venue description"
+    param :postal_code, String, required: false, desc: "Postal / ZIP code"
+    param :phone_number, String, required: false, desc: "Contact phone number"
+    param :email, String, required: false, desc: "Contact email"
+    param :latitude, Float, required: false, desc: "GPS latitude"
+    param :longitude, Float, required: false, desc: "GPS longitude"
+    param :timezone, String, required: false, desc: "IANA timezone identifier"
+    param :currency, String, required: false, desc: "ISO 4217 currency code"
+    param :is_active, :bool, required: false, desc: "Publicly visible toggle"
+    returns code: 200, desc: "Updated venue" do
+      property :success, [ true ]
+      property :data, Hash, desc: "Updated venue object (detailed view)"
+    end
+    error code: 401, desc: "Not authenticated"
+    error code: 403, desc: "Not the venue owner or insufficient permissions"
+    error code: 404, desc: "Venue not found"
+    error code: 422, desc: "Validation error"
     def update
       result = Api::V0::Venues::UpdateVenueOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result)
     end
 
-    # DELETE /api/v0/venues/:id
+    api :DELETE, "/venues/:id", "Delete a venue"
+    header "Authorization", "Bearer <access_token>", required: true
+    param :id, Integer, required: true, desc: "Venue ID"
+    returns code: 200, desc: "Venue deleted"
+    error code: 401, desc: "Not authenticated"
+    error code: 403, desc: "Not the venue owner or insufficient permissions"
+    error code: 404, desc: "Venue not found"
     def destroy
       result = Api::V0::Venues::DeleteVenueOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result)
     end
 
-    # PATCH /api/v0/venues/:id/operating_hours
+    api :PATCH, "/venues/:id/operating_hours", "Replace all operating hours for a venue"
+    header "Authorization", "Bearer <access_token>", required: true
+    param :id, Integer, required: true, desc: "Venue ID"
+    param :venue_operating_hours, Array, required: true, desc: "Full set of operating hours (all 7 days)" do
+      param :day_of_week, Integer, required: true, desc: "0 = Sunday … 6 = Saturday"
+      param :opens_at, String, required: false, desc: "Opening time (HH:MM)"
+      param :closes_at, String, required: false, desc: "Closing time (HH:MM)"
+      param :is_closed, :bool, required: false, desc: "Mark day as closed"
+    end
+    returns code: 200, desc: "Operating hours updated"
+    error code: 401, desc: "Not authenticated"
+    error code: 403, desc: "Not the venue owner or insufficient permissions"
+    error code: 404, desc: "Venue not found"
+    error code: 422, desc: "Validation error"
     def update_operating_hours
       result = Api::V0::Venues::UpdateVenueOperatingHoursOperation.call(params.to_unsafe_h, current_user)
 
       handle_operation_response(result)
     end
 
-    # PATCH /api/v0/venues/:id/onboarding_step
+    api :PATCH, "/venues/:id/onboarding_step", "Advance or set the venue's onboarding step"
+    header "Authorization", "Bearer <access_token>", required: true
+    param :id, Integer, required: true, desc: "Venue ID"
+    param :onboarding_step, String, required: true, desc: "Target onboarding step identifier"
+    returns code: 200, desc: "Onboarding step updated"
+    error code: 401, desc: "Not authenticated"
+    error code: 403, desc: "Not the venue owner or insufficient permissions"
+    error code: 404, desc: "Venue not found"
+    error code: 422, desc: "Validation error"
     def update_onboarding_step
       result = Api::V0::Venues::UpdateVenueOnboardingStepOperation.call(params.to_unsafe_h, current_user)
 
