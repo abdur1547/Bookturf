@@ -119,7 +119,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_095634) do
     t.bigint "court_type_id", null: false
     t.datetime "created_at", null: false
     t.text "description"
-    t.integer "display_order", default: 0, null: false
     t.jsonb "images_data"
     t.boolean "is_active", default: true, null: false
     t.string "name", null: false
