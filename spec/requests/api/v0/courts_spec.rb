@@ -27,8 +27,7 @@ RSpec.describe 'API V0 Courts', type: :request do
            venue: venue,
            court_type: court_type,
            name: 'Court A',
-           is_active: true,
-           display_order: 1)
+           is_active: true)
   end
 
   let!(:inactive_court) do
@@ -36,8 +35,7 @@ RSpec.describe 'API V0 Courts', type: :request do
            venue: venue,
            court_type: court_type,
            name: 'Court B',
-           is_active: false,
-           display_order: 2)
+           is_active: false)
   end
 
   describe 'GET /api/v0/courts' do
@@ -80,8 +78,7 @@ RSpec.describe 'API V0 Courts', type: :request do
       expect(data).to include(
         'id' => active_court.id,
         'name' => 'Court A',
-        'is_active' => true,
-        'display_order' => 1
+        'is_active' => true
       )
       expect(data['court_type']).to include('id' => court_type.id)
       expect(data['venue']).to include('id' => venue.id)
@@ -89,33 +86,135 @@ RSpec.describe 'API V0 Courts', type: :request do
   end
 
   describe 'POST /api/v0/courts' do
-    let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+    let(:endpoint) { '/api/v0/courts' }
+    let(:request_headers) { headers }
+
+    let(:court_name) { 'Court C' }
+    let(:court_description) { 'Premium badminton court' }
+    let(:court_is_active) { true }
+    let(:court_venue_id) { venue.id }
+    let(:court_court_type_id) { court_type.id }
+
     let(:request_params) do
       {
-        court: {
-          venue_id: venue.id,
-          court_type_id: court_type.id,
-          name: 'Court C',
-          description: 'Premium badminton court',
-          is_active: true,
-          display_order: 3
-        }
+        venue_id: court_venue_id,
+        court_type_id: court_court_type_id,
+        name: court_name,
+        description: court_description,
+        is_active: court_is_active
       }
     end
 
     before do
-      post '/api/v0/courts', params: request_params.to_json, headers: request_headers
+      post endpoint, params: request_params.to_json, headers: request_headers
     end
 
-    it 'creates a court successfully' do
-      expect(response).to have_http_status(:created)
-      expect(Court.find_by(name: 'Court C')).to be_present
+    # SUCCESS PATHS
+    context 'when authenticated as owner' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+
+      it 'returns created status' do
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'creates the court in the database' do
+        expect(Court.find_by(name: court_name)).to be_present
+      end
+
+      it 'matches the create response schema' do
+        expect(response).to match_json_schema('courts/create_response')
+      end
+
+      it 'returns the created court details' do
+        data = response.parsed_body['data']
+        expect(data).to include(
+          'name' => court_name,
+          'description' => court_description,
+          'is_active' => court_is_active
+        )
+      end
+
+      it 'returns embedded court_type' do
+        data = response.parsed_body['data']
+        expect(data['court_type']).to include('id' => court_type.id, 'name' => court_type.name)
+      end
+
+      it 'returns embedded venue' do
+        data = response.parsed_body['data']
+        expect(data['venue']).to include('id' => venue.id, 'name' => venue.name)
+      end
     end
 
-    it 'returns court details' do
-      data = response.parsed_body['data']
-      expect(data).to include('name' => 'Court C', 'description' => 'Premium badminton court')
-      expect(data['court_type']).to include('id' => court_type.id)
+    context 'when authenticated as admin' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(admin_user)) }
+
+      it 'returns created status' do
+        expect(response).to have_http_status(:created)
+      end
+    end
+
+    # FAILURE PATHS
+    context 'when not authenticated' do
+      it 'returns forbidden status' do
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
+
+    context 'when authenticated as customer' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(customer_user)) }
+
+      it 'returns forbidden status' do
+        expect(response).to have_http_status(:forbidden)
+      end
+    end
+
+    context 'when name is blank' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+      let(:court_name) { '' }
+
+      it 'returns unprocessable entity' do
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'matches the error response schema' do
+        expect(response).to match_json_schema('error_response')
+      end
+    end
+
+    context 'when venue_id is missing' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+      let(:court_venue_id) { nil }
+
+      it 'returns unprocessable entity' do
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context 'when court_type_id is missing' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+      let(:court_court_type_id) { nil }
+
+      it 'returns unprocessable entity' do
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+    end
+
+    context 'when venue does not exist' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+      let(:court_venue_id) { 999_999 }
+
+      it 'returns not found status' do
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'when court_type does not exist' do
+      let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
+      let(:court_court_type_id) { 999_999 }
+
+      it 'returns not found status' do
+        expect(response).to have_http_status(:not_found)
+      end
     end
   end
 
@@ -125,8 +224,7 @@ RSpec.describe 'API V0 Courts', type: :request do
       {
         court: {
           name: 'Court A Updated',
-          is_active: false,
-          display_order: 5
+          is_active: false
         }
       }
     end
@@ -139,26 +237,6 @@ RSpec.describe 'API V0 Courts', type: :request do
       expect(response).to have_http_status(:ok)
       expect(active_court.reload.name).to eq('Court A Updated')
       expect(active_court.reload.is_active).to eq(false)
-      expect(active_court.reload.display_order).to eq(5)
-    end
-  end
-
-  describe 'PATCH /api/v0/courts/:id/reorder' do
-    let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
-    let(:request_params) do
-      {
-        display_order: 10
-      }
-    end
-
-    before do
-      patch "/api/v0/courts/#{active_court.id}/reorder", params: request_params.to_json, headers: request_headers
-    end
-
-    it 'reorders the court successfully' do
-      expect(response).to have_http_status(:ok)
-      expect(active_court.reload.display_order).to eq(10)
-      expect(response.parsed_body['data']).to include('id' => active_court.id, 'display_order' => 10)
     end
   end
 
@@ -181,26 +259,33 @@ RSpec.describe 'API V0 Courts', type: :request do
 
   describe 'authorization restrictions' do
     let(:request_headers) { headers.merge('Authorization' => auth_token_for(customer_user)) }
-    let(:request_params) do
+
+    let(:create_params) do
+      {
+        venue_id: venue.id,
+        court_type_id: court_type.id,
+        name: 'Court Unauthorized',
+        description: 'Unauthorized court',
+        is_active: true
+      }
+    end
+
+    let(:update_params) do
       {
         court: {
-          venue_id: venue.id,
-          court_type_id: court_type.id,
           name: 'Court Unauthorized',
-          description: 'Unauthorized court',
-          is_active: true,
-          display_order: 4
+          is_active: true
         }
       }
     end
 
     it 'prevents customers from creating courts' do
-      post '/api/v0/courts', params: request_params.to_json, headers: request_headers
+      post '/api/v0/courts', params: create_params.to_json, headers: request_headers
       expect(response).to have_http_status(:forbidden)
     end
 
     it 'prevents customers from updating courts' do
-      patch "/api/v0/courts/#{active_court.id}", params: request_params.to_json, headers: request_headers
+      patch "/api/v0/courts/#{active_court.id}", params: update_params.to_json, headers: request_headers
       expect(response).to have_http_status(:forbidden)
     end
 
