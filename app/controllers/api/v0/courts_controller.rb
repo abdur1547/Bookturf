@@ -112,6 +112,83 @@ module Api::V0
       handle_operation_response(result, :created)
     end
 
+    api :PATCH, "/courts/:id", "Update an existing court"
+    api :PUT, "/courts/:id", "Update an existing court"
+    header "Authorization", "Bearer <access_token>", required: true
+    param :id, Integer, required: true, desc: "ID of the court to update"
+    param :court_type_id, Integer, required: false, desc: "ID of the court type (e.g. cricket, football)"
+    param :name, String, required: false, desc: "Court name"
+    param :description, String, required: false, desc: "Court description"
+    param :slot_interval, Integer, required: false, desc: "Booking slot duration in minutes"
+    param :requires_approval, :bool, required: false, desc: "Whether bookings require manual approval"
+    param :is_active, :bool, required: false, desc: "Whether the court is publicly visible"
+    param :pricing_rules, Array, required: false, desc: "Replace all pricing rules for this court" do
+      param :name, String, required: true, desc: "Rule name"
+      param :price_per_hour, Float, required: true, desc: "Price per hour (must be > 0)"
+      param :day_of_week, String, required: false, desc: "Day applicability: monday, tuesday, wednesday, thursday, friday, saturday, sunday, all_days, weekdays, or weekends"
+      param :start_date, String, required: false, desc: "Start date (ISO 8601); omit or null for all dates"
+      param :end_date, String, required: false, desc: "End date (ISO 8601); omit or null for all dates"
+      param :start_time, String, required: false, desc: "Start time (HH:MM); omit or null for all times"
+      param :end_time, String, required: false, desc: "End time (HH:MM); omit or null for all times"
+      param :priority, Integer, required: false, desc: "Rule priority (lower number = higher priority)"
+      param :is_active, :bool, required: false, desc: "Whether this pricing rule is active"
+    end
+    returns code: 200, desc: "Court updated successfully" do
+      property :success, [ true ], desc: "Always true on success"
+      property :data, Hash, desc: "Updated court object (detailed view)" do
+        property :id, Integer, desc: "Court ID"
+        property :name, String, desc: "Court name"
+        property :description, String, desc: "Court description"
+        property :court_type_id, Integer, desc: "Court type ID"
+        property :venue_id, Integer, desc: "Parent venue ID"
+        property :slot_interval, Integer, desc: "Booking slot duration in minutes"
+        property :requires_approval, :bool, desc: "Whether bookings require manual approval"
+        property :is_active, :bool, desc: "Whether the court is publicly visible"
+        property :created_at, String, desc: "ISO 8601 creation timestamp"
+        property :updated_at, String, desc: "ISO 8601 last-update timestamp"
+        property :sport_type_name, String, desc: "Sport type derived from the court type"
+        property :venue_name, String, desc: "Parent venue name"
+        property :city, String, desc: "City inherited from the parent venue"
+        property :price_range, Hash, desc: "Derived min/max price across active pricing rules" do
+          property :min, Float
+          property :max, Float
+        end
+        property :images, Array, desc: "Attached court images" do
+          property :id, Integer
+          property :url, String
+          property :alt_text, String
+        end
+        property :court_type, Hash, desc: "Embedded court type (minimal)" do
+          property :id, Integer
+          property :name, String
+          property :slug, String
+        end
+        property :venue, Hash, desc: "Embedded parent venue (minimal)" do
+          property :id, Integer
+          property :name, String
+          property :slug, String
+          property :city, String
+        end
+        property :pricing_rules, Array, desc: "Pricing rules for this court" do
+          property :id, Integer
+          property :name, String
+          property :price_per_hour, Float
+          property :day_of_week, String, desc: "Enum value (e.g. all_days, monday)"
+          property :day_name, String, desc: "Human-readable day label"
+          property :start_time, String
+          property :end_time, String
+          property :start_date, String
+          property :end_date, String
+          property :priority, Integer
+          property :is_active, :bool
+          property :time_range, String, desc: "Formatted time range string"
+        end
+      end
+    end
+    error code: 401, desc: "Not authenticated"
+    error code: 403, desc: "Authenticated user does not have permission to manage this court"
+    error code: 404, desc: "Court not found"
+    error code: 422, desc: "Validation error (e.g. invalid values)"
     # PATCH/PUT /api/v0/courts/:id
     def update
       result = Api::V0::Courts::UpdateCourtOperation.call(params.to_unsafe_h, current_user)

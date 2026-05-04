@@ -226,10 +226,8 @@ RSpec.describe 'API V0 Courts', type: :request do
     let(:request_headers) { headers.merge('Authorization' => auth_token_for(owner_user)) }
     let(:request_params) do
       {
-        court: {
-          name: 'Court A Updated',
-          is_active: false
-        }
+        name: 'Court A Updated',
+        is_active: false
       }
     end
 
@@ -241,6 +239,19 @@ RSpec.describe 'API V0 Courts', type: :request do
       expect(response).to have_http_status(:ok)
       expect(active_court.reload.name).to eq('Court A Updated')
       expect(active_court.reload.is_active).to eq(false)
+    end
+
+    it 'replaces pricing rules when provided' do
+      new_pricing_params = request_params.merge(
+        pricing_rules: [ { name: 'New Rate', price_per_hour: 2000.0, day_of_week: 'weekdays', priority: 1, is_active: true } ]
+      )
+      patch "/api/v0/courts/#{active_court.id}", params: new_pricing_params.to_json, headers: request_headers
+
+      expect(response).to have_http_status(:ok)
+      rules = active_court.reload.pricing_rules
+      expect(rules.count).to eq(1)
+      expect(rules.first.name).to eq('New Rate')
+      expect(rules.first.price_per_hour).to eq(2000.0)
     end
   end
 
@@ -277,10 +288,8 @@ RSpec.describe 'API V0 Courts', type: :request do
 
     let(:update_params) do
       {
-        court: {
-          name: 'Court Unauthorized',
-          is_active: true
-        }
+        name: 'Court Unauthorized',
+        is_active: true
       }
     end
 
