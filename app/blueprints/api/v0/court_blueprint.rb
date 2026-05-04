@@ -11,7 +11,6 @@ module Api::V0
            :slot_interval,
            :requires_approval,
            :is_active,
-           :display_order,
            :created_at,
            :updated_at
 
@@ -83,8 +82,7 @@ module Api::V0
           {
             id: image["id"],
             url: image["url"],
-            alt_text: image["alt_text"],
-            display_order: image["display_order"]
+            alt_text: image["alt_text"]
           }
         end
       end

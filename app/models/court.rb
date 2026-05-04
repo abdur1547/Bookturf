@@ -11,7 +11,6 @@ class Court < ApplicationRecord
 
   scope :active, -> { where(is_active: true) }
   scope :inactive, -> { where(is_active: false) }
-  scope :by_display_order, -> { order(:display_order, :name) }
   scope :of_type, ->(court_type) { where(court_type: court_type) }
 
   def sport_name
