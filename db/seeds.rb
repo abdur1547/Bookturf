@@ -32,12 +32,12 @@ load Rails.root.join('db', 'seeds', '04_roles_permissions.rb')
 puts ""
 
 # Phase 5: Bookings
-load Rails.root.join('db', 'seeds', '05_bookings.rb')
-puts ""
+# load Rails.root.join('db', 'seeds', '05_bookings.rb')
+# puts ""
 
 # Phase 6: Court Closures & Notifications
-load Rails.root.join('db', 'seeds', '06_closures_notifications.rb')
-puts ""
+# load Rails.root.join('db', 'seeds', '06_closures_notifications.rb')
+# puts ""
 
 puts "=" * 60
 puts "✅ All seeding complete!"
