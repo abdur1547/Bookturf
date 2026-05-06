@@ -31,12 +31,16 @@ puts ""
 load Rails.root.join('db', 'seeds', '04_roles_permissions.rb')
 puts ""
 
-# Phase 5: Bookings
-# load Rails.root.join('db', 'seeds', '05_bookings.rb')
+# Phase 5: Venue Staff
+load Rails.root.join('db', 'seeds', '05_venue_staff.rb')
+puts ""
+
+# Phase 6: Bookings
+# load Rails.root.join('db', 'seeds', '06_bookings.rb')
 # puts ""
 
-# Phase 6: Court Closures & Notifications
-# load Rails.root.join('db', 'seeds', '06_closures_notifications.rb')
+# Phase 7: Court Closures & Notifications
+# load Rails.root.join('db', 'seeds', '07_closures_notifications.rb')
 # puts ""
 
 puts "=" * 60
