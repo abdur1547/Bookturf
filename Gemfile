@@ -59,7 +59,7 @@ gem "figaro"
 # Authentication (JWT for API endpoints)
 gem "jwt", "~> 3.1"
 
-gem "pagy", "~> 43.4"
+gem "pagy", "~> 43.5"
 
 # Authorization
 gem "pundit", "~> 2.4"
